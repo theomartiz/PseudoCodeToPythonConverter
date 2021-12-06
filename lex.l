@@ -1,6 +1,8 @@
+digit [0-9]
+letter [A-Za-z]
 %{
 #include <stdlib.h>
-#include "yacc.tab.h"
+#include "y.tab.h"
 %}
 
 %%
@@ -44,7 +46,7 @@ null printf("NULL_VALUE,");
 ">" printf("SUP,");
 ">=" printf("SUPEQ,");
 ";" printf("END_STATEMENT,");
-[A-Za-z_][A-Za-z0-9_]* printf("IDENTIFIER,");
+{letter}({letter}|{digit}|"_")* printf("IDENTIFIER,");
 
 .;
 
