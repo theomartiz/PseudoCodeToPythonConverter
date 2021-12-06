@@ -6,7 +6,8 @@ letter [A-Za-z]
 %}
 
 %%
-  
+{letter}({letter}|{digit}|"_")* printf("IDENTIFIER,");
+
 : printf("DECLARATOR,");
 :=  printf("ASSIGNATOR,");
 " " printf("SEPARATOR,");
@@ -46,8 +47,8 @@ null printf("NULL_VALUE,");
 ">" printf("SUP,");
 ">=" printf("SUPEQ,");
 ";" printf("END_STATEMENT,");
-{letter}({letter}|{digit}|"_")* printf("IDENTIFIER,");
-
+"{" printf("COM_BEG");
+"}" printf("COM_END");
 .;
 
 %%
