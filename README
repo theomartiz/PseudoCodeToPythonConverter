@@ -1,0 +1,6 @@
+RUN
+- `yacc -d yacc.y` to get y.tab.c and y.tab.h files (y.tab.h is required by lex.l for token definitions)
+- `lex lex.l` to get lex.yy.c file
+- `cc lex.yy.c` to compile and get a.out executable
+- `./a.out to test`
+
