@@ -1,7 +1,0 @@
-{
-  "Token": {
-    "prefix": ["token"],
-    "body": ["$token printf(\"$TOKEN,\");"],
-    "description": "token."
-  }
-}
