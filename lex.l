@@ -1,6 +1,6 @@
 %{
 #include <stdlib.h>
-#include "y.tab.h"
+#include "yacc.tab.h"
 %}
 
 %%
@@ -44,7 +44,7 @@ null printf("NULL_VALUE,");
 ">" printf("SUP,");
 ">=" printf("SUPEQ,");
 ";" printf("END_STATEMENT,");
-^[^a - z A - Z _] printf("IDENTIFIER");
+[A-Za-z_][A-Za-z0-9_]* printf("IDENTIFIER,");
 
 .;
 
