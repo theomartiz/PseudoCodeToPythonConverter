@@ -8,103 +8,102 @@ letter [A-Za-z]
 %%
  
  /* Boolean operators */
-"=" printf("EQ,");
-"<" printf("INF,");
-"<=" printf("INFEQ,");
-">" printf("SUP,");
-">=" printf("SUPEQ,");
-"<>" printf("NOTEQ,");
-and printf("AND,");
-or printf("OR,");
-not printf("NOT,");
+"=" return EQ;
+"<" return INF;
+"<=" return INFEQ;
+">" return SUP;
+">=" return SUPEQ;
+"<>" return NOTEQ;
+and return AND;
+or return OR;
+not return NOT;
  
  /* Declaration & assignation of variables */
-: printf("DECLARATOR,");
-:=  printf("ASSIGNATOR,");
-var printf("VAR,");
+: return DECLARATOR;
+:=  return ASSIGNATOR;
+var return VAR;
 
  /* Mathematical functions */
-abs printf("ABS,");
-log printf("LOG,");
-exp printf("EXP,");
+abs return ABS;
+log return LOG;
+exp return EXP;
 
   /* Data types */
-string printf("STRING,");
-char printf("CHAR,");
-int printf("INT,");
-real printf("REAL,");
-boolean printf("BOOLEAN,");
+string return STRING;
+char return CHAR;
+int return INT;
+real return REAL;
+boolean return BOOLEAN;
 
   /* Conditional statements */
-if printf("IF,");
-else printf("ELSE,");
-then printf("THEN,");
+if return IF;
+else return ELSE;
+then return THEN;
 
   /* Loop Statement */
-do printf("DO,");
-while printf("WHILE,");
-for printf("FOR,");
-to printf("TO,");
+do return DO;
+while return WHILE;
+for return FOR;
+to return TO;
 
   /* Group Statement */
-begin printf("BEG,");
-end printf("END,");
+begin return BEG;
+end return END;
 
   /* Read and write statements */
-read printf("READ,");
-write printf("WRITE,");
+read return READ;
+write return WRITE;
 
   /* Functions */
-function printf("FUNCTION,");
+function return FUNCTION;
 
   /* Values */
-true printf("TRUE,");
-false printf("FALSE,");
-null printf("NULL_VALUE,");
+true return TRUE;
+false return FALSE;
+null return NULL_VALUE;
 
   /* Return */
-return printf("RETURN,");
+return return RETURN;
 
   /* Comments */
-"{" printf("COM_BEG,");
-"}" printf("COM_END,");
+"{" return COM_BEG;
+"}" return COM_END;
 
   /* Others */
-\t printf("TAB,");
-";" printf("END_STATEMENT,");
-"," printf("COMMA,");
+\t return TAB;
+";" return END_STATEMENT;
+"," return COMMA;
 
 [+-]?{digit}+([.]{digit}+)? {
-  printf("NUMBER,");
-} 
+  yylval.iValue = atoi(yytext);
+  return INTEGER;
+}
 
   /* Arithmetic operators */
-"+" printf("+,");
-"-" printf("-,");
-"/" printf("/,");
-"*" printf("*,");
-div printf("DIV,");
-mod printf("MOD,");
+[-+/$] return *yytext;
+div return DIV;
+mod return MOD;
 
   /* Strings */
 \"(\\.|[^\\"])*\" {
-  printf("STRING,"); 
+  return STRING; 
 }
 
  /* Identifiers */
 {letter}({letter}|{digit}|"_")* {
-  printf("IDENTIFIER,"); 
+  yylval.sIndex = *yytext - 'a';
+  return IDENTIFIER; 
 }
  
   /* New line */
-[\n] printf("NEWLINE,");
+[\n] return NEWLINE;
 
  /* skip whitespace */
 [ \t] ;
 
  
   /* anything else is an error */
-. ;
+. yyerror("invalid character");
 
 %%
 int yywrap() 
