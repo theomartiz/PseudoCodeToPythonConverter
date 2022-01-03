@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include "node.type.h"
 
 nodeType *opr(int oper, int nops, ...);
@@ -74,51 +75,51 @@ expr:
 nodeType *constant(int value) {
   nodeType *node;
   /* allocate node */
-  if ((p = malloc(sizeof(nodeType))) == NULL)
+  if ((node = malloc(sizeof(nodeType))) == NULL)
   yyerror("out of memory");
   /* copy information */
-  node->type = typeCon;
+  node->type = typeConstant;
   node->constant.value = value;
   return node;
 }
 
 nodeType *id(int i) {
-  nodeType *p;
+  nodeType *node;
   /* allocate node */
-  if ((p = malloc(sizeof(nodeType))) == NULL)
+  if ((node = malloc(sizeof(nodeType))) == NULL)
   yyerror("out of memory");
   /* copy information */
-  p->type = typeId;
-  p->id.i = i;
-  return p;
+  node->type = typeId;
+  node->id.i = i;
+  return node;
 }
 
 nodeType *opr(int oper, int nops, ...) {
   va_list ap;
-  nodeType *p;
+  nodeType *node;
   int i;
   /* allocate node, extending op array */
-  if ((p = malloc(sizeof(nodeType) + (nops-1) * sizeof(nodeType *))) == NULL)
+  if ((node = malloc(sizeof(nodeType) + (nops-1) * sizeof(nodeType *))) == NULL)
   yyerror("out of memory");
   /* copy information */
-  p->type = typeOpr;
-  p->opr.oper = oper;
-  p->opr.nops = nops;
+  node->type = typeOpr;
+  node->opr.oper = oper;
+  node->opr.nops = nops;
   va_start(ap, nops);
   for (i = 0; i < nops; i++)
-  p->opr.op[i] = va_arg(ap, nodeType*);
+    node->opr.op[i] = va_arg(ap, nodeType*);
   va_end(ap);
-  return p;
+  return node;
 }
   
-void freeNode(nodeType *p) {
+void freeNode(nodeType *node) {
   int i;
-  if (!p) return;
-  if (p->type == typeOpr) {
-    for (i = 0; i < p->opr.nops; i++)
-    freeNode(p->opr.op[i]);
+  if (!node) return;
+  if (node->type == typeOpr) {
+    for (i = 0; i < node->opr.nops; i++)
+      freeNode(node->opr.op[i]);
   }
-  free(p);
+  free(node);
 }
 
 int yyerror(char *s) {
