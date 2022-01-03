@@ -81,8 +81,10 @@ precedence than addition and subtraction. All four operators are left-associativ
 %left '+' '-'
 %left '*' '/' DIV MOD 
 %nonassoc UMINUS  /*supplies precedence for unary minus */
+%nonassoc IFX
+%nonassoc ELSE
 
-%type <treeVal> declaration_block declaration expr type_specifier declaration_list id_declaration
+%type <treeVal> declaration_block declaration expr type_specifier declaration_list id_declaration basic_data_type stmt_list stmt function
 
 /* beginning of rules section */
 %%  
@@ -179,6 +181,15 @@ type_specifier:
   }
   ;
 
+basic_data_type:
+  INT {$$ = opr(INT, 1, id($1)); }
+  | CHAR {$$ = opr(CHAR, 1, id($1)); }
+  | STRING {$$ = opr(STRING, 1, id($1)); }
+  | BOOLEAN {$$ = opr(BOOLEAN, 1, id($1)); }
+  | REAL {$$ = opr(REAL, 1, id($1)); }
+  | INT {$$ = opr(INT, 1, id($1)); }
+  ;
+  
 expr: 
   INT { $$ = constant($1); }
   | REAL { $$ = constant($1); }
@@ -200,6 +211,32 @@ expr:
   | expr MOD expr { $$ = opr(MOD, 2, $1, $3); }
   | '(' expr ')'  { $$ = $2; }
   ;
+
+stmt:
+  ';' { $$ = opr(';', 2, NULL, NULL); }
+  | expr ';' { $$ = $1; }
+  | VAR '=' expr ';' { $$ = opr('=', 2, id($1), $3); }
+  | WHILE '(' expr ')' stmt { $$ = opr(WHILE, 2, $3, $5); }
+  | IF '(' expr ')' stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
+  | IF '(' expr ')' stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }
+  | BEG NEWLINE stmt ',' NEWLINE END { $$ = opr(BEG, 1, $3); }
+  | FOR VAR '=' INT TO INT DO stmt { $$ = opr(FOR, 4, id($2), $4, $6, $8); }
+  | WHILE expr DO stmt { $$ = opr(WHILE, 2, $2, $4); }
+  | DO stmt WHILE expr { $$ = opr(DO, 2, $2, $4); }
+  | READ '(' basic_data_type ',' VAR ')' { $$ = opr(READ, 2, $3, id($5)); }
+  | WRITE '(' basic_data_type ',' VAR ')' { $$ = opr(WRITE, 2, $3, id($5)); }
+  | '{' stmt_list '}' { $$ = $2; }
+  ;
+
+
+stmt_list:
+  stmt { $$ = $1; }
+  | stmt_list stmt { $$ = opr(';', 2, $1, $2); }
+  ;
+
+function:
+  FUNCTION STRING '(' declaration ')' ':' basic_data_type NEWLINE stmt NEWLINE RETURN basic_data_type { $$ = opr(FUNCTION, , $2, id($4), $9, id($12); }
+  ;
 %%
 
 #define SIZEOF_NODETYPE ((char *)&p->constant - (char *)p)
@@ -207,7 +244,7 @@ expr:
 nodeType *constant(int value) {
   nodeType *p;
   /* allocate node */
-  if ((p = malloc(sizeof(nodeType))) == NULL)
+  if ((node = malloc(sizeof(nodeType))) == NULL)
   yyerror("out of memory");
   /* copy information */
   p->type = typeConstant;
@@ -216,32 +253,32 @@ nodeType *constant(int value) {
 }
 
 nodeType *get_id(int i) {
-  nodeType *p;
+  nodeType *node;
   /* allocate node */
-  if ((p = malloc(sizeof(nodeType))) == NULL)
+  if ((node = malloc(sizeof(nodeType))) == NULL)
   yyerror("out of memory");
   /* copy information */
-  p->type = typeId;
-  p->id.i = i;
-  return p;
+  node->type = typeId;
+  node->id.i = i;
+  return node;
 }
 
 nodeType *opr(int oper, int nops, ...) {
   va_list ap;
-  nodeType *p;
+  nodeType *node;
   int i;
   /* allocate node, extending op array */
-  if ((p = malloc(sizeof(nodeType) + (nops-1) * sizeof(nodeType *))) == NULL)
+  if ((node = malloc(sizeof(nodeType) + (nops-1) * sizeof(nodeType *))) == NULL)
   yyerror("out of memory");
   /* copy information */
-  p->type = typeOpr;
-  p->opr.oper = oper;
-  p->opr.nops = nops;
+  node->type = typeOpr;
+  node->opr.oper = oper;
+  node->opr.nops = nops;
   va_start(ap, nops);
   for (i = 0; i < nops; i++)
-  p->opr.op[i] = va_arg(ap, nodeType*);
+    node->opr.op[i] = va_arg(ap, nodeType*);
   va_end(ap);
-  return p;
+  return node;
 }
 
 B_TREE create_node(struct value val,int case_identifier,B_TREE p1,B_TREE p2,B_TREE p3,B_TREE p4) {
