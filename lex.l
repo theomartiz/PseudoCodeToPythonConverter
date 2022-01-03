@@ -111,7 +111,6 @@ mod return MOD;
  /* Identifiers */
 {letter}({letter}|{digit}|"_")* {
   yylval.strValue = yytext;
-  
   return IDENTIFIER;
 }
  

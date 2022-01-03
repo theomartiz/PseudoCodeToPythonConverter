@@ -28,7 +28,7 @@ struct treeNode {
 			int i;
 			long double f;
 			char *s;
-		} value;
+		} v;
 		char *use;
 	} val;
 	int nodeIdentifier;
@@ -142,8 +142,9 @@ declaration_list:
 id_declaration:
   IDENTIFIER { 
     struct value new_node;
-		new_node.value.s = yylval.strValue;
+		new_node.v.s = yylval.strValue;
 		new_node.use = "identifier";
+    printf("node to be created: %s / ",new_node.v.s);
 		$$ = create_node(new_node,ID,NULL,NULL,NULL,NULL);
   }
   ;
@@ -151,31 +152,31 @@ id_declaration:
 type_specifier:
   INT { 
     struct value new_node;
-		new_node.value.s = "int";
+		new_node.v.s = "int";
 		new_node.use = "string";
     $$ = create_node(new_node,TYPE_SPECIFIER,NULL,NULL,NULL,NULL); 
   }
   | CHAR {
     struct value new_node;
-		new_node.value.s = "char";
+		new_node.v.s = "char";
 		new_node.use = "string";
     $$ = create_node(new_node,TYPE_SPECIFIER,NULL,NULL,NULL,NULL); 
   }
   | STRING {
     struct value new_node;
-		new_node.value.s = "string";
+		new_node.v.s = "string";
 		new_node.use = "string";
     $$ = create_node(new_node,TYPE_SPECIFIER,NULL,NULL,NULL,NULL); 
   }
   | BOOLEAN {
     struct value new_node;
-		new_node.value.s = "bool";
+		new_node.v.s = "bool";
 		new_node.use = "string";
     $$ = create_node(new_node,TYPE_SPECIFIER,NULL,NULL,NULL,NULL); 
   }
   | REAL {
     struct value new_node;
-		new_node.value.s = "real";
+		new_node.v.s = "real";
 		new_node.use = "string";
     $$ = create_node(new_node,TYPE_SPECIFIER,NULL,NULL,NULL,NULL); 
   }
@@ -215,16 +216,16 @@ expr:
 stmt:
   ';' { $$ = opr(';', 2, NULL, NULL); }
   | expr ';' { $$ = $1; }
-  | VAR '=' expr ';' { $$ = opr('=', 2, id($1), $3); }
+  /*| IDENTIFIER '=' expr ';' { $$ = opr('=', 2, id($1), $3); }*/
   | WHILE '(' expr ')' stmt { $$ = opr(WHILE, 2, $3, $5); }
   | IF '(' expr ')' stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
   | IF '(' expr ')' stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }
   | BEG NEWLINE stmt ',' NEWLINE END { $$ = opr(BEG, 1, $3); }
-  | FOR VAR '=' INT TO INT DO stmt { $$ = opr(FOR, 4, id($2), $4, $6, $8); }
+  /*| FOR VAR '=' INT TO INT DO stmt { $$ = opr(FOR, 4, id($2), $4, $6, $8); }*/
   | WHILE expr DO stmt { $$ = opr(WHILE, 2, $2, $4); }
   | DO stmt WHILE expr { $$ = opr(DO, 2, $2, $4); }
-  | READ '(' basic_data_type ',' VAR ')' { $$ = opr(READ, 2, $3, id($5)); }
-  | WRITE '(' basic_data_type ',' VAR ')' { $$ = opr(WRITE, 2, $3, id($5)); }
+  /*| READ '(' basic_data_type ',' VAR ')' { $$ = opr(READ, 2, $3, id($5)); }
+  | WRITE '(' basic_data_type ',' VAR ')' { $$ = opr(WRITE, 2, $3, id($5)); }*/
   | '{' stmt_list '}' { $$ = $2; }
   ;
 
@@ -244,7 +245,7 @@ function:
 nodeType *constant(int value) {
   nodeType *p;
   /* allocate node */
-  if ((node = malloc(sizeof(nodeType))) == NULL)
+  if ((p = malloc(sizeof(nodeType))) == NULL)
   yyerror("out of memory");
   /* copy information */
   p->type = typeConstant;
@@ -281,10 +282,10 @@ nodeType *opr(int oper, int nops, ...) {
   return node;
 }
 
-B_TREE create_node(struct value val,int case_identifier,B_TREE p1,B_TREE p2,B_TREE p3,B_TREE p4) {
+B_TREE create_node(struct value val, int case_identifier, B_TREE p1, B_TREE p2, B_TREE p3, B_TREE p4) {
 	B_TREE t;
 	t = (B_TREE)malloc(sizeof(TREE_NODE));
-  if (strcmp(val.use,"identifier")) printf("node created value:%s\n", val.value.s);
+  if (strcmp(val.use,"identifier")) printf("node created :%s\n", val.v.s);
 	t->val = val;
 	t->nodeIdentifier = case_identifier;
 	t->first = p1;
@@ -298,7 +299,7 @@ int find_usage(B_TREE p,char *type[100],int i,char *u) {
   if(p == NULL)
     return i;
   if(strcmp(p->val.use,u) == 0) {
-    strcpy(type[i],p->val.value.s);
+    strcpy(type[i],p->val.v.s);
     i++;
   }
   i=find_usage(p->first,type,i,u);
@@ -312,13 +313,13 @@ void PrintTree(B_TREE t) {
 	if(t==NULL)
 		return; 
 	if(strcmp(t->val.use,"string")==0)
-		printf("Value: %s ",t->val.value.s);
+		printf("Value: %s ",t->val.v.s);
 	if(strcmp(t->val.use,"identifier")==0)
-		printf("Value: %s ",t->val.value.s);
+		printf("Value: %s ",t->val.v.s);
 	else if(strcmp(t->val.use,"float")==0)
-		printf("Value: %Lf ",t->val.value.f);
+		printf("Value: %Lf ",t->val.v.f);
 	else if(strcmp(t->val.use,"integer")==0)
-		printf("Value: %d ",t->val.value.i);
+		printf("Value: %d ",t->val.v.i);
 	else 
 		printf("Value: ");
 

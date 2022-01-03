@@ -5,5 +5,4 @@ a.out
 .vscode
 .idea
 DS_Store
-*.c
 *.exe
