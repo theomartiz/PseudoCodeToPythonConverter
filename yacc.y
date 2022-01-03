@@ -9,6 +9,7 @@ nodeType *constant(int value);
 int yylex(void);
 
 int yyerror(char *s);
+int sym[26]; /* symbol table */
 %}
 
 /* Basic data types */
@@ -28,12 +29,13 @@ int yyerror(char *s);
 %token <strValue> STRING
 %token <boolValue> BOOLEAN
 %token <realValue> REAL
+%token <sIndex> VAR
 
-%token IDENTIFIER NUMBER VAR DIV MOD AND OR NOT ABS LOG EXP BEG END TRUE FALSE IF THEN ELSE WHILE DO FOR TO READ WRITE FUNCTION RETURN NULL_VALUE EQ INF INFEQ SUP SUPEQ NOTEQ COMMA TAB COM_BEG COM_END NEWLINE DECLARATOR ASSIGNATOR
+%token IDENTIFIER DIV MOD AND OR NOT ABS LOG EXP BEG END TRUE FALSE IF THEN ELSE WHILE DO FOR TO READ WRITE FUNCTION RETURN NULL_VALUE EQ INF INFEQ SUP SUPEQ NOTEQ COMMA TAB COM_BEG COM_END NEWLINE DECLARATOR ASSIGNATOR
 
 /* The last definition listed has the highest precedence. Consequently multiplication and division have higher
 precedence than addition and subtraction. All four operators are left-associative. */
-%right DECLARATOR
+%right ASSIGNATOR DECLARATOR
 %left AND OR NOT NOTEQ SUP SUPEQ INF INFEQ EQ
 %left '+' '-'
 %left '*' '/' DIV MOD 
@@ -44,7 +46,9 @@ precedence than addition and subtraction. All four operators are left-associativ
 /* beginning of rules section */
 %%  
 declaration:
-  VAR NEWLINE IDENTIFIER DECLARATOR { ; }
+  VAR NEWLINE IDENTIFIER DECLARATOR STRING { $$ = id($3); }
+  | VAR NEWLINE IDENTIFIER DECLARATOR STRING { $$ = id($3); }
+
 
 expr: 
   INT { $$ = constant($1); }
@@ -77,7 +81,7 @@ nodeType *constant(int value) {
   if ((p = malloc(sizeof(nodeType))) == NULL)
   yyerror("out of memory");
   /* copy information */
-  node->type = typeCon;
+  node->type = typeConstant;
   node->constant.value = value;
   return node;
 }
