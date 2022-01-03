@@ -46,10 +46,12 @@ precedence than addition and subtraction. All four operators are left-associativ
 
 /* beginning of rules section */
 %%  
-declaration:
+/* declaration:
   VAR NEWLINE IDENTIFIER DECLARATOR STRING { $$ = id($3); }
-  | VAR NEWLINE IDENTIFIER DECLARATOR STRING { $$ = id($3); }
+  | VAR NEWLINE IDENTIFIER DECLARATOR STRING { $$ = id($3); } */
 
+declaration:
+  VAR NEWLINE IDENTIFIER DECLARATOR STRING { }
 
 expr: 
   INT { $$ = constant($1); }
