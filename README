@@ -4,7 +4,7 @@ RUN
 - `cc lex.yy.c y.tab.c` to compile and get a.out executable
 - `./a.out to test`
 
-OR RUN yacc -d yacc.y && lex lex.l && cc lex.yy.c main.c && ./a.out input.txt
+OR RUN yacc -d yacc.y && lex lex.l && cc main.c && ./a.out input.txt
 
 TO RUN ON WINDOWS:
 - 'flex "fileName.l"'

@@ -1,3 +1,5 @@
 var
     a, b: string
     x, y: int
+    w: char
+    

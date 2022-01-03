@@ -1,6 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
-extern int  yylex();
+extern int yylex();
 #include "y.tab.c"
 #include "lex.yy.c"
 extern FILE *yyin;
