@@ -5,7 +5,7 @@
 
 nodeType *opr(int oper, int nops, ...);
 nodeType *id(int i);
-nodeType *con(int value);
+nodeType *constant(int value);
 int yylex(void);
 
 int yyerror(char *s);
@@ -18,6 +18,7 @@ int yyerror(char *s);
   char *strValue; /* string value */
   bool boolValue; /* boolean value */
   long double realValue; /* real value */
+  
   char sIndex; /* symbol table index */
   nodeType *nPtr; /* node pointer */
 };
@@ -32,22 +33,22 @@ int yyerror(char *s);
 
 /* The last definition listed has the highest precedence. Consequently multiplication and division have higher
 precedence than addition and subtraction. All four operators are left-associative. */
-%left AND OR NOT NOTEQ SUP SUPEQ INF INFEQ
+%right DECLARATOR
+%left AND OR NOT NOTEQ SUP SUPEQ INF INFEQ EQ
 %left '+' '-'
-%left '*' '/' DIV MOD
+%left '*' '/' DIV MOD 
 %nonassoc UMINUS  /*supplies precedence for unary minus */
 
-%type <nPtr> declaration expr 
+%type <nPtr> declaration expr
 
 /* beginning of rules section */
 %%  
-
 declaration:
   VAR NEWLINE IDENTIFIER DECLARATOR { ; }
 
 expr: 
-  INT { $$ = con($1); }
-  | REAL { $$ = con($1); }
+  INT { $$ = constant($1); }
+  | REAL { $$ = constant($1); }
   | '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
   | expr '+' expr  { $$ = opr('+', 2, $1, $3); }
   | expr '-' expr  { $$ = opr('-', 2, $1, $3); }
@@ -67,6 +68,20 @@ expr:
   | '(' expr ')'  { $$ = $2; }
   ;
 %%
+
+#define SIZEOF_NODETYPE ((char *)&p->constant - (char *)p)
+
+nodeType *constant(int value) {
+  nodeType *node;
+  /* allocate node */
+  if ((p = malloc(sizeof(nodeType))) == NULL)
+  yyerror("out of memory");
+  /* copy information */
+  node->type = typeCon;
+  node->constant.value = value;
+  return node;
+}
+
 nodeType *id(int i) {
   nodeType *p;
   /* allocate node */
@@ -76,6 +91,34 @@ nodeType *id(int i) {
   p->type = typeId;
   p->id.i = i;
   return p;
+}
+
+nodeType *opr(int oper, int nops, ...) {
+  va_list ap;
+  nodeType *p;
+  int i;
+  /* allocate node, extending op array */
+  if ((p = malloc(sizeof(nodeType) + (nops-1) * sizeof(nodeType *))) == NULL)
+  yyerror("out of memory");
+  /* copy information */
+  p->type = typeOpr;
+  p->opr.oper = oper;
+  p->opr.nops = nops;
+  va_start(ap, nops);
+  for (i = 0; i < nops; i++)
+  p->opr.op[i] = va_arg(ap, nodeType*);
+  va_end(ap);
+  return p;
+}
+  
+void freeNode(nodeType *p) {
+  int i;
+  if (!p) return;
+  if (p->type == typeOpr) {
+    for (i = 0; i < p->opr.nops; i++)
+    freeNode(p->opr.op[i]);
+  }
+  free(p);
 }
 
 int yyerror(char *s) {
