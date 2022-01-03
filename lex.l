@@ -2,7 +2,11 @@ digit [0-9]
 letter [A-Za-z]
 %{
 #include <stdlib.h>
-#include "yacc.tab.h"
+#include <stdbool.h>
+#include "node.type.h"
+#include "y.tab.h"
+
+void yyerror(char *);
 %}
 
 %%
@@ -24,7 +28,7 @@ not return NOT;
 var return VAR;
 
  /* Mathematical functions */
-abs return ABS;
+abs({letter}({letter}|{digit}|"_")*|{digit}+([.]{digit}+)?) return ABS;
 log return LOG;
 exp return EXP;
 
@@ -71,12 +75,18 @@ return return RETURN;
 
   /* Others */
 \t return TAB;
-";" return END_STATEMENT;
 "," return COMMA;
 
-[+-]?{digit}+([.]{digit}+)? {
-  yylval.iValue = atoi(yytext);
-  return INTEGER;
+  /* Real */
+{digit}+([.]{digit}+) {
+  yylval.realValue = atof(yytext);
+  return REAL;
+}
+
+  /* Integers */
+{digit}+ {
+  yylval.intValue = atoi(yytext);
+  return INT;
 }
 
   /* Arithmetic operators */

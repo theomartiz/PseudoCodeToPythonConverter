@@ -4,6 +4,8 @@ RUN
 - `cc lex.yy.c` to compile and get a.out executable
 - `./a.out to test`
 
+OR RUN yacc -d yacc.y && lex lex.l && cc lex.yy.c && ./a.out
+
 TO RUN ON WINDOWS:
 - 'flex "fileName.l"'
 - 'bison -d "fileName.y"'
