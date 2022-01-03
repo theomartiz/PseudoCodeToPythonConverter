@@ -31,8 +31,10 @@ int sym[26]; /* symbol table */
 %token <boolValue> BOOLEAN
 %token <realValue> REAL
 %token <sIndex> VAR
+%nonassoc IFX
+%nonassoc ELSE
 
-%token IDENTIFIER DIV MOD AND OR NOT ABS LOG EXP BEG END TRUE FALSE IF THEN ELSE WHILE DO FOR TO READ WRITE FUNCTION RETURN NULL_VALUE EQ INF INFEQ SUP SUPEQ NOTEQ COMMA TAB COM_BEG COM_END NEWLINE DECLARATOR ASSIGNATOR
+%token IDENTIFIER DIV MOD AND OR NOT ABS LOG EXP BEG END TRUE FALSE IF THEN WHILE DO FOR TO READ WRITE FUNCTION RETURN NULL_VALUE EQ INF INFEQ SUP SUPEQ NOTEQ COMMA TAB COM_BEG COM_END NEWLINE DECLARATOR ASSIGNATOR
 
 /* The last definition listed has the highest precedence. Consequently multiplication and division have higher
 precedence than addition and subtraction. All four operators are left-associative. */
@@ -43,7 +45,7 @@ precedence than addition and subtraction. All four operators are left-associativ
 %nonassoc UMINUS  /*supplies precedence for unary minus */
 
 /// TODO: stmt avec begin/end , for, read/write | definition de fonction et son appel | assignement de variable 
-%type <nPtr> declaration expr 
+%type <nPtr> declaration expr stmt stmt_list basic_data_type function
 
 /* beginning of rules section */
 %%  
@@ -55,6 +57,15 @@ precedence than addition and subtraction. All four operators are left-associativ
 declaration:
   VAR NEWLINE IDENTIFIER DECLARATOR STRING { }
 
+basic_data_type:
+  INT {$$ = opr(INT, 1, id($1)); }
+  | CHAR {$$ = opr(CHAR, 1, id($1)); }
+  | STRING {$$ = opr(STRING, 1, id($1)); }
+  | BOOLEAN {$$ = opr(BOOLEAN, 1, id($1)); }
+  | REAL {$$ = opr(REAL, 1, id($1)); }
+  | INT {$$ = opr(INT, 1, id($1)); }
+  ;
+  
 expr: 
   INT { $$ = constant($1); }
   | REAL { $$ = constant($1); }
@@ -75,6 +86,32 @@ expr:
   | expr DIV expr  { $$ = opr(DIV, 2, $1, $3); }
   | expr MOD expr { $$ = opr(MOD, 2, $1, $3); }
   | '(' expr ')'  { $$ = $2; }
+  ;
+
+stmt:
+  ';' { $$ = opr(';', 2, NULL, NULL); }
+  | expr ';' { $$ = $1; }
+  | VAR '=' expr ';' { $$ = opr('=', 2, id($1), $3); }
+  | WHILE '(' expr ')' stmt { $$ = opr(WHILE, 2, $3, $5); }
+  | IF '(' expr ')' stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
+  | IF '(' expr ')' stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }
+  | BEG NEWLINE stmt ',' NEWLINE END { $$ = opr(BEG, 1, $3); }
+  | FOR VAR '=' INT TO INT DO stmt { $$ = opr(FOR, 4, id($2), $4, $6, $8); }
+  | WHILE expr DO stmt { $$ = opr(WHILE, 2, $2, $4); }
+  | DO stmt WHILE expr { $$ = opr(DO, 2, $2, $4); }
+  | READ '(' basic_data_type ',' VAR ')' { $$ = opr(READ, 2, $3, id($5)); }
+  | WRITE '(' basic_data_type ',' VAR ')' { $$ = opr(WRITE, 2, $3, id($5)); }
+  | '{' stmt_list '}' { $$ = $2; }
+  ;
+
+
+stmt_list:
+  stmt { $$ = $1; }
+  | stmt_list stmt { $$ = opr(';', 2, $1, $2); }
+  ;
+
+function:
+  FUNCTION STRING '(' declaration ')' ':' basic_data_type NEWLINE stmt NEWLINE RETURN basic_data_type { $$ = opr(FUNCTION, , $2, id($4), $9, id($12); }
   ;
 %%
 
