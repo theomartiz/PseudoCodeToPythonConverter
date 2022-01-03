@@ -42,13 +42,15 @@ precedence than addition and subtraction. All four operators are left-associativ
 %left '*' '/' DIV MOD 
 %nonassoc UMINUS  /*supplies precedence for unary minus */
 
-%type <nPtr> declaration expr
+/// TODO: stmt avec begin/end , for, read/write | definition de fonction et son appel | assignement de variable 
+%type <nPtr> declaration expr 
 
 /* beginning of rules section */
 %%  
 /* declaration:
   VAR NEWLINE IDENTIFIER DECLARATOR STRING { $$ = id($3); }
   | VAR NEWLINE IDENTIFIER DECLARATOR STRING { $$ = id($3); } */
+
 
 declaration:
   VAR NEWLINE IDENTIFIER DECLARATOR STRING { }
