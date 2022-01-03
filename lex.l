@@ -42,7 +42,6 @@ string {
 }
 char return CHAR;
 int {
-   
   return INT;
 }
 real return REAL;
@@ -89,17 +88,19 @@ return return RETURN;
   /* Real */
 {digit}+([.]{digit}+) {
   yylval.realValue = atof(yytext);
-  return REAL;
+  return REAL_VALUE;
 }
 
   /* Integers */
 {digit}+ {
   yylval.intValue = atoi(yytext);
-  return INT;
+  return INT_VALUE;
 }
 
   /* Arithmetic operators */
-[-+/$] return *yytext;
+[-/+$] {
+  return *yytext;
+}
 div return DIV;
 mod return MOD;
 
@@ -125,6 +126,7 @@ mod return MOD;
 . yyerror("invalid character");
 
 %%
+
 int yywrap(void){
   return 1;
 }

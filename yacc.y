@@ -7,8 +7,8 @@
 #define SYMTABSIZE	997
 #define IDLENGTH	15
 
-enum PARSE_TREE_NODE_TYPE {DECLARATION,TYPE_SPECIFIER, DECLARATION_BLOCK, DECLARATION_LIST, ID};
-const char* labels[] = {"DECLARATION","TYPE_SPECIFIER", "DECLARATION_BLOCK", "DECLARATION_LIST", "ID"};
+enum PARSE_TREE_NODE_TYPE {DECLARATION,TYPE_SPECIFIER, DECLARATION_BLOCK, DECLARATION_LIST, ID, ADDITION};
+const char* labels[] = {"DECLARATION","TYPE_SPECIFIER", "DECLARATION_BLOCK", "DECLARATION_LIST", "ID", "ADDITION"};
 
 char *id[100];
 char *type[100];
@@ -61,13 +61,13 @@ void PrintTree(B_TREE);
   B_TREE treeVal; /* node pointer */
 };
 
-%token <intValue> INT
+%token <intValue> INT_VALUE
 %token <charValue> CHAR
 %token <strValue> IDENTIFIER STRING
 %token <boolValue> BOOLEAN
-%token <realValue> REAL
+%token <realValue> REAL_VALUE
 
-%token VAR DIV MOD AND OR NOT ABS LOG EXP BEG END TRUE FALSE IF THEN ELSE WHILE DO FOR TO READ WRITE FUNCTION RETURN NULL_VALUE EQ INF INFEQ SUP SUPEQ NOTEQ COMMA TAB COM_BEG COM_END NEWLINE DECLARATOR ASSIGNATOR
+%token VAR DIV MOD AND OR NOT ABS LOG EXP BEG END TRUE FALSE IF THEN ELSE WHILE DO FOR TO READ WRITE FUNCTION RETURN NULL_VALUE EQ INF INFEQ SUP SUPEQ NOTEQ COMMA TAB COM_BEG COM_END NEWLINE DECLARATOR ASSIGNATOR INT REAL
 
 /* The last definition listed has the highest precedence. Consequently multiplication and division have higher
 precedence than addition and subtraction. All four operators are left-associative. */
@@ -177,51 +177,37 @@ type_specifier:
 
   
 expr: 
-  INT { $$ = constant($1); }
-  | REAL { $$ = constant($1); }
-  | '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
-  | expr '+' expr  { $$ = createNode(, ADDITION, $1, $3); }
-  | expr '-' expr  { $$ = opr('-', 2, $1, $3); }
-  | expr '*' expr  { $$ = opr('*', 2, $1, $3); }
-  | expr '/' expr  { $$ = opr('/', 2, $1, $3); }
-  | expr INF expr  { $$ = opr(INF, 2, $1, $3); }
-  | expr AND expr  { $$ = opr(AND, 2, $1, $3); }
-  | expr OR expr  { $$ = opr(OR, 2, $1, $3); }
-  | expr NOT expr  { $$ = opr(NOT, 2, $1, $3); }
-  | expr SUP expr  { $$ = opr(SUP, 2, $1, $3); }
-  | expr SUPEQ expr  { $$ = opr(GE, 2, $1, $3); }
-  | expr INFEQ expr  { $$ = opr(LE, 2, $1, $3); }
-  | expr NOTEQ expr  { $$ = opr(NE, 2, $1, $3); }
-  | expr EQ expr  { $$ = opr(EQ, 2, $1, $3); }
-  | expr DIV expr  { $$ = opr(DIV, 2, $1, $3); }
-  | expr MOD expr { $$ = opr(MOD, 2, $1, $3); }
+  INT_VALUE { 
+    struct TreeValue new_node;
+    new_node.v.i = yyval.intValue;
+    $$ = createNode(new_node, CONSTANT, $1, NULL, NULL, NULL);  
+  }
+  | REAL_VALUE { 
+    struct TreeValue new_node;
+    new_node.v.f = yyval.realValue;
+    $$ = createNode(new_node, CONSTANT, $1, NULL, NULL, NULL); 
+   }
+  | '-' expr %prec UMINUS { 
+    struct TreeValue new_node;
+    new_node.v.f = yyval.intValue;
+    $$ = createNode(new_node, CONSTANT, $1, NULL, NULL, NULL);  
+  }
+  | expr '+' expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, ADDITION, $1, $3, NULL, NULL); }
+  | expr '-' expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, SOUSTRACTION, $1, $3, NULL, NULL); }
+  | expr '*' expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, MULTIPLICATION, $1, $3, NULL, NULL); }
+  | expr '/' expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, DIVISION, $1, $3, NULL, NULL); }
+  | expr INF expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, INF, $1, $3, NULL, NULL); }
+  | expr AND expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, AND, $1, $3, NULL, NULL); }
+  | expr OR expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, OR, $1, $3, NULL, NULL); }
+  | expr NOT expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, NOT, $1, $3, NULL, NULL); }
+  | expr SUP expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, SUP, $1, $3, NULL, NULL); }
+  | expr SUPEQ expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, SUPEQ, $1, $3, NULL, NULL); }
+  | expr INFEQ expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, INFEQ, $1, $3, NULL, NULL); }
+  | expr NOTEQ expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, NOTEQ, $1, $3, NULL, NULL); }
+  | expr EQ expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, EQ, $1, $3, NULL, NULL); }
+  | expr DIV expr  { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, DIV, $1, $3, NULL, NULL); }
+  | expr MOD expr { struct TreeValue empty_node; empty_node.use="none"; $$ = createNode(empty_node, MOD, $1, $3, NULL, NULL); }
   | '(' expr ')'  { $$ = $2; }
-  ;
-
-stmt:
-  ';' { $$ = opr(';', 2, NULL, NULL); }
-  | expr ';' { $$ = $1; }
-  /*| IDENTIFIER '=' expr ';' { $$ = opr('=', 2, id($1), $3); }*/
-  | WHILE '(' expr ')' stmt { $$ = opr(WHILE, 2, $3, $5); }
-  | IF '(' expr ')' stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
-  | IF '(' expr ')' stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }
-  | BEG NEWLINE stmt ',' NEWLINE END { $$ = opr(BEG, 1, $3); }
-  /*| FOR VAR '=' INT TO INT DO stmt { $$ = opr(FOR, 4, id($2), $4, $6, $8); }*/
-  | WHILE expr DO stmt { $$ = opr(WHILE, 2, $2, $4); }
-  | DO stmt WHILE expr { $$ = opr(DO, 2, $2, $4); }
-  /*| READ '(' basic_data_type ',' VAR ')' { $$ = opr(READ, 2, $3, id($5)); }
-  | WRITE '(' basic_data_type ',' VAR ')' { $$ = opr(WRITE, 2, $3, id($5)); }*/
-  | '{' stmt_list '}' { $$ = $2; }
-  ;
-
-
-stmt_list:
-  stmt { $$ = $1; }
-  | stmt_list stmt { $$ = opr(';', 2, $1, $2); }
-  ;
-
-function:
-  FUNCTION STRING '(' declaration ')' ':' type_specifier NEWLINE stmt NEWLINE RETURN type_specifier { $$ = opr(FUNCTION, , $2, id($4), $9, id($12)); }
   ;
 %%
 

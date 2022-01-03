@@ -1,5 +1,1 @@
-var
-    a, b: string
-    x, y: int
-    w: char
-    
+2+3
