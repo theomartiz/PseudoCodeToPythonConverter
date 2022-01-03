@@ -5,6 +5,5 @@ a.out
 .vscode
 .idea
 DS_Store
-*.h
 *.c
 *.exe
