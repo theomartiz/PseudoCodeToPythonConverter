@@ -3,10 +3,7 @@ letter [A-Za-z]
 %{
 #include <stdlib.h>
 #include <stdbool.h>
-#include "node.type.h"
 #include "y.tab.h"
-
-void yyerror(char *);
 %}
 
 %%
@@ -23,9 +20,15 @@ or return OR;
 not return NOT;
  
  /* Declaration & assignation of variables */
-: return DECLARATOR;
+: {
+   
+  return DECLARATOR;
+}
 :=  return ASSIGNATOR;
-var return VAR;
+var {
+   
+  return VAR;
+}
 
  /* Mathematical functions */
 abs({letter}({letter}|{digit}|"_")*|{digit}+([.]{digit}+)?) return ABS;
@@ -33,9 +36,15 @@ log return LOG;
 exp return EXP;
 
   /* Data types */
-string return STRING;
+string {
+   
+  return STRING;
+}
 char return CHAR;
-int return INT;
+int {
+   
+  return INT;
+}
 real return REAL;
 boolean return BOOLEAN;
 
@@ -101,8 +110,9 @@ mod return MOD;
 
  /* Identifiers */
 {letter}({letter}|{digit}|"_")* {
-  yylval.sIndex = *yytext - 'a';
-  return IDENTIFIER; 
+  yylval.strValue = yytext;
+  
+  return IDENTIFIER;
 }
  
   /* New line */
