@@ -116,12 +116,6 @@ mod return MOD;
 . yyerror("invalid character");
 
 %%
-int yywrap() 
-{ 
-    return 1; 
-} 
-int main()
-{
-  yylex();
-  return 0;
+int yywrap(void){
+  return 1;
 }

@@ -6,8 +6,9 @@
 nodeType *opr(int oper, int nops, ...);
 nodeType *id(int i);
 nodeType *con(int value);
+int yylex(void);
 
-void yyerror(char *s);
+int yyerror(char *s);
 %}
 
 /* Basic data types */
@@ -77,15 +78,13 @@ nodeType *id(int i) {
   return p;
 }
 
-main() { 
-  yyparse();
+int yyerror(char *s) {
+  fprintf(stderr, "%s\n", s);
   return 0;
 }
 
-void yyerror(char *s){
-  fprintf(stderr, "%s\n",s);
-}
-
-yywrap(){
-  return(1);
+int main(void)
+{
+  yyparse();
+  return 0;
 }

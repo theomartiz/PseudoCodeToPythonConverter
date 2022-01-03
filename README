@@ -1,10 +1,10 @@
 RUN
 - `yacc -d yacc.y` to get y.tab.c and y.tab.h files (y.tab.h is required by lex.l for token definitions)
 - `lex lex.l` to get lex.yy.c file
-- `cc lex.yy.c` to compile and get a.out executable
+- `cc lex.yy.c y.tab.c` to compile and get a.out executable
 - `./a.out to test`
 
-OR RUN yacc -d yacc.y && lex lex.l && cc lex.yy.c && ./a.out
+OR RUN yacc -d yacc.y && lex lex.l && cc lex.yy.c y.tab.c && ./a.out
 
 TO RUN ON WINDOWS:
 - 'flex "fileName.l"'
