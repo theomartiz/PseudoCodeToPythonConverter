@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdarg.h> 
+#include <string.h>
 #include "node.type.h"
 #include "hashing.c"
 
@@ -22,8 +23,8 @@ int yylex();
 int yyerror(char *s);
 
 /* parse tree */
-struct treeNode {
-	struct value{
+struct TreeNode {
+	struct TreeValue{
 		union {
 			int i;
 			long double f;
@@ -32,14 +33,14 @@ struct treeNode {
 		char *use;
 	} val;
 	int nodeIdentifier;
-	struct treeNode *first;
-	struct treeNode *second;
-	struct treeNode *third;
-	struct treeNode *fourth;
+	struct TreeNode *first;
+	struct TreeNode *second;
+	struct TreeNode *third;
+	struct TreeNode *fourth;
 };
-typedef struct treeNode TREE_NODE;
+typedef struct TreeNode TREE_NODE;
 typedef TREE_NODE *B_TREE;
-B_TREE create_node(struct value, int, B_TREE, B_TREE, B_TREE, B_TREE);
+B_TREE create_node(struct TreeValue, int, B_TREE, B_TREE, B_TREE, B_TREE);
 int find_usage(B_TREE, char *type[100], int, char *u);
 B_TREE tree_to_print;
 
@@ -90,12 +91,12 @@ precedence than addition and subtraction. All four operators are left-associativ
 %%  
 declaration_block:
   VAR NEWLINE declaration { 
-      struct value empty_node; empty_node.use="none";
+      struct TreeValue empty_node; empty_node.use="none";
       $$ = create_node(empty_node,DECLARATION_BLOCK,$3,NULL,NULL,NULL); 
   }
   |
   declaration_block NEWLINE declaration { 
-      struct value empty_node; empty_node.use="none";
+      struct TreeValue empty_node; empty_node.use="none";
       tree_to_print = create_node(empty_node,DECLARATION_BLOCK,$1,$3,NULL,NULL); 
       PrintTree(tree_to_print);
       $$ = tree_to_print;
@@ -104,7 +105,7 @@ declaration_block:
 
 declaration:
   declaration_list DECLARATOR type_specifier {
-    struct value empty_node; empty_node.use="none";
+    struct TreeValue empty_node; empty_node.use="none";
     $$ = create_node(empty_node,DECLARATION,$1,$3,NULL,NULL);
 		int i, j, type_index = 0, id_index = 0;
 		for(i = 0; i < 100; i++) {
@@ -130,18 +131,18 @@ declaration:
 
 declaration_list: 
   id_declaration { 
-    struct value empty_node; empty_node.use="none";
+    struct TreeValue empty_node; empty_node.use="none";
 		$$ = create_node(empty_node,DECLARATION_LIST,$1,NULL,NULL,NULL);
   }
   | declaration_list COMMA id_declaration { 
-      struct value empty_node; empty_node.use="none";
+      struct TreeValue empty_node; empty_node.use="none";
       $$ = create_node(empty_node,DECLARATION_LIST,$1,$3,NULL,NULL); 
     }
   ;
 
 id_declaration:
   IDENTIFIER { 
-    struct value new_node;
+    struct TreeValue new_node;
 		new_node.v.s = yylval.strValue;
 		new_node.use = "identifier";
     printf("node to be created: %s / ",new_node.v.s);
@@ -151,31 +152,31 @@ id_declaration:
 
 type_specifier:
   INT { 
-    struct value new_node;
+    struct TreeValue new_node;
 		new_node.v.s = "int";
 		new_node.use = "string";
     $$ = create_node(new_node,TYPE_SPECIFIER,NULL,NULL,NULL,NULL); 
   }
   | CHAR {
-    struct value new_node;
+    struct TreeValue new_node;
 		new_node.v.s = "char";
 		new_node.use = "string";
     $$ = create_node(new_node,TYPE_SPECIFIER,NULL,NULL,NULL,NULL); 
   }
   | STRING {
-    struct value new_node;
+    struct TreeValue new_node;
 		new_node.v.s = "string";
 		new_node.use = "string";
     $$ = create_node(new_node,TYPE_SPECIFIER,NULL,NULL,NULL,NULL); 
   }
   | BOOLEAN {
-    struct value new_node;
+    struct TreeValue new_node;
 		new_node.v.s = "bool";
 		new_node.use = "string";
     $$ = create_node(new_node,TYPE_SPECIFIER,NULL,NULL,NULL,NULL); 
   }
   | REAL {
-    struct value new_node;
+    struct TreeValue new_node;
 		new_node.v.s = "real";
 		new_node.use = "string";
     $$ = create_node(new_node,TYPE_SPECIFIER,NULL,NULL,NULL,NULL); 
@@ -282,10 +283,9 @@ nodeType *opr(int oper, int nops, ...) {
   return node;
 }
 
-B_TREE create_node(struct value val, int case_identifier, B_TREE p1, B_TREE p2, B_TREE p3, B_TREE p4) {
+B_TREE create_node(struct TreeValue val, int case_identifier, B_TREE p1, B_TREE p2, B_TREE p3, B_TREE p4) {
 	B_TREE t;
 	t = (B_TREE)malloc(sizeof(TREE_NODE));
-  if (strcmp(val.use,"identifier")) printf("node created :%s\n", val.v.s);
 	t->val = val;
 	t->nodeIdentifier = case_identifier;
 	t->first = p1;
@@ -310,6 +310,7 @@ int find_usage(B_TREE p,char *type[100],int i,char *u) {
 }
 
 void PrintTree(B_TREE t) {
+  printf("%s == %s = %d",t->val.use,"string",strcmp(t->val.use,"string")==0);
 	if(t==NULL)
 		return; 
 	if(strcmp(t->val.use,"string")==0)
