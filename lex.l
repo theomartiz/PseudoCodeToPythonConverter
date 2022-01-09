@@ -4,6 +4,12 @@ letter [A-Za-z]
 #include <stdlib.h>
 #include <stdbool.h>
 #include "y.tab.h"
+
+extern int sym_type(const char *);
+
+#include<strings.h>
+extern SYMTABNODEPTR symTab[SYMTABSIZE];
+extern int currentSymTabSize;
 %}
 
 %%
@@ -20,15 +26,9 @@ or return OR;
 not return NOT;
  
  /* Declaration & assignation of variables */
-: {
-   
-  return DECLARATOR;
-}
+
 :=  return ASSIGNATOR;
-var {
-   
-  return VAR;
-}
+var return VAR;
 
  /* Mathematical functions */
 abs({letter}({letter}|{digit}|"_")*|{digit}+([.]{digit}+)?) return ABS;
@@ -36,14 +36,9 @@ log return LOG;
 exp return EXP;
 
   /* Data types */
-string {
-   
-  return STRING;
-}
+string return STRING;
 char return CHAR;
-int {
-  return INT;
-}
+int return INT;
 real return REAL;
 boolean return BOOLEAN;
 
@@ -69,11 +64,6 @@ write return WRITE;
   /* Functions */
 function return FUNCTION;
 
-  /* Values */
-true return TRUE;
-false return FALSE;
-null return NULL_VALUE;
-
   /* Return */
 return return RETURN;
 
@@ -81,10 +71,15 @@ return return RETURN;
 "{" return COM_BEG;
 "}" return COM_END;
 
-  /* Others */
-\t return TAB;
-"," return COMMA;
+  /* Arithmetic operators */
+[-/+*$] {
+  return *yytext;
+}
+div return DIV;
+mod return MOD;
 
+
+  /* VALUES */
   /* Real */
 {digit}+([.]{digit}+) {
   yylval.realValue = atof(yytext);
@@ -97,33 +92,53 @@ return return RETURN;
   return INT_VALUE;
 }
 
-  /* Arithmetic operators */
-[-/+$] {
-  return *yytext;
+  /* Character */
+\'(\\.|[^\\"])\' {
+  yylval.charValue = yytext[1];
+  return CHAR_VALUE; 
 }
-div return DIV;
-mod return MOD;
 
   /* Strings */
 \"(\\.|[^\\"])*\" {
-  return STRING; 
+  yylval.strValue = strdup(yytext);
+  return STRING_VALUE; 
 }
+
+true {
+  yylval.boolValue = 1;
+  return BOOLEAN_VALUE;
+} 
+
+false {
+  yylval.boolValue = 0;
+  return BOOLEAN_VALUE;
+}
+
+null return NULL_VALUE;
 
  /* Identifiers */
 {letter}({letter}|{digit}|"_")* {
-  yylval.strValue = yytext;
+  yylval.strValue = strdup(yytext);
   return IDENTIFIER;
 }
- 
-  /* New line */
-[\n] return NEWLINE;
 
+: {
+  return DECLARATOR;
+}
+"," return COMMA;
+
+ 
+  /* New line (several newlines are resolved to one token) */
+[\n]* return NEWLINE;
+
+\t return TAB;
+"    " return TAB; /* some IDE replace \t by 4 space characters */
  /* skip whitespace */
-[ \t] ;
+[ ] {}
 
  
-  /* anything else is an error */
-. yyerror("invalid character");
+ /* anything else is ignore */
+. {}
 
 %%
 

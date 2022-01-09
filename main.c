@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 extern int yylex();
+#define YYDEBUG 1
 #include "y.tab.c"
 #include "lex.yy.c"
 extern FILE *yyin;
@@ -19,6 +20,10 @@ int main(int argc, char *argv[])
         exit(0);
     }
     yyin = fp;
+    #if YYDEBUG
+        yydebug = 1;
+    #endif
     yyparse();
+    //print_table();
 	return 0;
 }

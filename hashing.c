@@ -72,7 +72,7 @@ void print_table() {
 	printf("---------------------------------\n");
 	for(i=0;i<SYMTABSIZE;i++) {
 		if(strcmp(symtab[i].name,"NULL")!=0)
-			printf("|%d\t|%s\t|%s\t\t|\n",i,symtab[i].name,symtab[i].type);
+			printf("|%d\t|%s\t|%s\t|\n",i,symtab[i].name,symtab[i].type);
 	}
 	printf("---------------------------------\n");
     return;
