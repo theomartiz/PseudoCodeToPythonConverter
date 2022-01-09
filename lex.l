@@ -71,8 +71,8 @@ return return RETURN;
 "{" return COM_BEG;
 "}" return COM_END;
 
-  /* Arithmetic operators */
-[-/+*$] {
+  /* Special characters */
+[-/+*()$] {
   return *yytext;
 }
 div return DIV;
