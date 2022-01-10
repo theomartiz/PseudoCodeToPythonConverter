@@ -67,10 +67,6 @@ function return FUNCTION;
   /* Return */
 return return RETURN;
 
-  /* Comments */
-"{" return COM_BEG;
-"}" return COM_END;
-
   /* Special characters */
 [-/+*()$] {
   return *yytext;
@@ -102,6 +98,11 @@ mod return MOD;
 \"(\\.|[^\\"])*\" {
   yylval.strValue = strdup(yytext);
   return STRING_VALUE; 
+}
+
+"{"(\\.|[^}])*"}" {
+  yylval.strValue = strdup(yytext);
+  return COMMENT;
 }
 
 true {
