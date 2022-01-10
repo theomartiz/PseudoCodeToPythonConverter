@@ -7,8 +7,8 @@
 #define SYMTABSIZE	997
 #define IDLENGTH	15
 
-enum PARSE_TREE_NODE_TYPE {ID_EXPR,CONSTANT_EXPR, INFERIOR, SUPERIOR, SUPERIOR_EQUAL, INFERIOR_EQUAL, NOT_EQUAL, EQUAL, PROGRAM, DECLARATION, DECLARATOR_LIST, TYPE_SPECIFIER, DECLARATION_BLOCK, ID, ADDITION, CONSTANT, ASSIGNATION, SOUSTRACTION, MULTIPLICATION, DIVISION, INT_DIVISION, MODULO, PARENTHESIS, AND_OP, OR_OP, NOT_OP, OPPOSITE, STMT_LIST, STMT, COMMENT_BLOCK, STMT_BLOCK, IF_ELSE_STMT, WHILE_LOOP};
-const char* labels[] = {"ID_EXPR","CONSTANT_EXPR","INFERIOR", "SUPERIOR", "SUPERIOR_EQUAL", "INFERIOR_EQUAL", "NOT_EQUAL", "EQUAL","PROGRAM", "DECLARATION", "DECLARATOR_LIST", "TYPE_SPECIFIER", "DECLARATION_BLOCK", "ID", "ADDITION","CONSTANT", "ASSIGNATION","SOUSTRACTION", "MULTIPLICATION", "DIVISION", "INT_DIVISION", "MODULO", "PARENTHESIS", "AND_OP", "OR_OP", "NOT_OP", "OPPOSITE", "STMT_LIST", "STMT", "COMMENT_BLOCK", "STMT_BLOCK", "IF_ELSE_STMT", "WHILE_LOOP"};
+enum PARSE_TREE_NODE_TYPE {ID_EXPR,CONSTANT_EXPR, INFERIOR, SUPERIOR, SUPERIOR_EQUAL, INFERIOR_EQUAL, NOT_EQUAL, EQUAL, PROGRAM, DECLARATION, DECLARATOR_LIST, TYPE_SPECIFIER, DECLARATION_BLOCK, ID, ADDITION, CONSTANT, ASSIGNATION, SOUSTRACTION, MULTIPLICATION, DIVISION, INT_DIVISION, MODULO, PARENTHESIS, AND_OP, OR_OP, NOT_OP, OPPOSITE, STMT_LIST, STMT, COMMENT_BLOCK, STMT_BLOCK, IF_ELSE_STMT, WHILE_LOOP, FOR_LOOP,READ_STMT,WRITE_STMT,FUNC_STMT};
+const char* labels[] = {"ID_EXPR","CONSTANT_EXPR","INFERIOR", "SUPERIOR", "SUPERIOR_EQUAL", "INFERIOR_EQUAL", "NOT_EQUAL", "EQUAL","PROGRAM", "DECLARATION", "DECLARATOR_LIST", "TYPE_SPECIFIER", "DECLARATION_BLOCK", "ID", "ADDITION","CONSTANT", "ASSIGNATION","SOUSTRACTION", "MULTIPLICATION", "DIVISION", "INT_DIVISION", "MODULO", "PARENTHESIS", "AND_OP", "OR_OP", "NOT_OP", "OPPOSITE", "STMT_LIST", "STMT", "COMMENT_BLOCK", "STMT_BLOCK", "IF_ELSE_STMT", "WHILE_LOOP", "FOR_LOOP","READ_STMT","WRITE_STMT","FUNC_STMT"};
 
 char *id[100];
 char *type[100];
@@ -69,7 +69,7 @@ void PrintTree(B_TREE);
 %token <strValue> IDENTIFIER STRING_VALUE STRING CHAR BOOLEAN COMMENT
 
 
-%token VAR DIV MOD AND OR NOT ABS LOG EXP BEG END IF THEN ELSE WHILE DO FOR TO READ WRITE FUNCTION RETURN NULL_VALUE EQ INF INFEQ SUP SUPEQ NOTEQ COMMA TAB NEWLINE DECLARATOR ASSIGNATOR INT REAL
+%token VAR DIV MOD AND OR NOT ABS LOG EXP BEG END IF THEN ELSE WHILE DO FOR TO READ WRITE FUNCTION RETURN NULL_VALUE EQ INF INFEQ SUP SUPEQ NOTEQ COMMA TAB NEWLINE DECLARATOR ASSIGNATOR INT REAL END_INPUT TERMINATOR
 
 /* The last definition listed has the highest precedence. Consequently multiplication and division have higher
 precedence than addition and subtraction. All four operators are left-associative. */
@@ -87,15 +87,17 @@ precedence than addition and subtraction. All four operators are left-associativ
 %% 
 
 program:
-  stmt_list {
+  stmt_list END_INPUT{
     struct TreeValue empty_node; empty_node.use="none";
     $$ = create_node(empty_node,PROGRAM,$1,NULL,NULL,NULL); 
     PrintTree($$);
+    print_table();
+    exit(0);
   }
   ;
 
 stmt_block: 
-  BEG NEWLINE stmt_list END NEWLINE { struct TreeValue empty_node; empty_node.use="none"; $$ = create_node(empty_node,STMT_BLOCK,$3,NULL,NULL,NULL); }
+  BEG NEWLINE stmt_list END stmt_terminator { struct TreeValue empty_node; empty_node.use="none"; $$ = create_node(empty_node,STMT_BLOCK,$3,NULL,NULL,NULL); }
 
 stmt_list:
   stmt { struct TreeValue empty_node; empty_node.use="none"; $$ = create_node(empty_node,STMT_LIST,$1,NULL,NULL,NULL); }
@@ -107,7 +109,7 @@ stmt:
     struct TreeValue empty_node; empty_node.use="none";
     $$ = create_node(empty_node,STMT,$1,NULL,NULL,NULL); 
   }
-  | assignation {
+  | assignation stmt_terminator{
     struct TreeValue empty_node; empty_node.use="none";
     $$ = create_node(empty_node,STMT,$1,NULL,NULL,NULL); 
   }
@@ -187,6 +189,78 @@ stmt:
       exit(1);
     }
   }
+  | FOR assignation TO constant DO NEWLINE stmt {
+    if (strcmp($2->second->val.use,"int") != 0 || strcmp($4->val.use,"int") != 0){
+      yyerror("For-do loop: Variable and constant have to be of type integer.");
+      exit(1);
+    } else {
+      struct TreeValue empty_node; empty_node.use="none";
+      $$ = create_node(empty_node,FOR_LOOP,$2,$4,$7,NULL); 
+    }
+  }
+  | FOR assignation TO constant DO NEWLINE stmt_block {
+    if (strcmp($2->second->val.use,"int") != 0 || strcmp($4->val.use,"int") != 0){
+      yyerror("For-do loop: Variable and constant have to be of type integer.");
+      exit(1);
+    } else {
+      struct TreeValue empty_node; empty_node.use="none";
+      $$ = create_node(empty_node,FOR_LOOP,$2,$4,$7,NULL); 
+    }
+  }
+  | READ '(' id_declarator ')' stmt_terminator{
+    int id_index;
+    id_index = hash_search($3->val.v.s);
+    if (id_index == -1){
+      char message[32+IDLENGTH] = "Variable ";
+      strcat(message,$3->val.v.s);
+      strcat(message," has not been declared.");
+      yyerror(message);
+      exit(1);
+    }  else {
+      struct TreeValue empty_node; empty_node.use="none";
+      $$ = create_node(empty_node,READ_STMT,$3,NULL,NULL,NULL);
+    }
+  }
+  | WRITE '(' expr ')' stmt_terminator{
+    struct TreeValue empty_node; empty_node.use="none";
+    $$ = create_node(empty_node,WRITE_STMT,$3,NULL,NULL,NULL);
+  }
+  | FUNCTION id_declarator '(' declarator_list ')' DECLARATOR type_specifier NEWLINE stmt_block {
+    int i, j, type_index = 0, id_index = 0, insert_result;
+
+    for(i = 0; i < 100; i++) {
+      id[i] = (char *)malloc(IDLENGTH*sizeof(char));
+      strcpy(id[i],"NULL");
+      type[i] = (char *)malloc(10*sizeof(char));
+      strcpy(type[i],"NULL");
+    }
+    
+    //find the number of ids in the current tree
+    id_index = find_usage($2,id,id_index,"identifier");
+    //find the number of types declaration in the current tree
+    type_index = find_usage($7,type,type_index,"string");
+
+    for(i=0;i<id_index;i++) {
+      for(j=1;j<type_index;j++) {
+        if(strcmp(type[j],"NULL")!=0) {
+          strcat(type[0]," ");
+          strcat(type[0],type[j]);
+        }
+      }
+      insert_result = hash_insert(id[i],type[0]);
+      if (insert_result == -1){
+        char message[35+IDLENGTH] = "Variable ";
+        strcat(message,id[i]);
+        strcat(message," has already been declared.");
+        yyerror(message);
+        exit(1);
+      }
+    }
+
+    struct TreeValue empty_node; empty_node.use="none";
+    $$ = create_node(empty_node,FUNC_STMT,$2,$4,$7,$9);
+  }
+  | ignore_newline {}
   ;
   
 
@@ -202,9 +276,7 @@ declaration_block:
   ;
 
 declaration:
-  declarator_list DECLARATOR type_specifier NEWLINE {
-      struct TreeValue empty_node; empty_node.use="none";
-      $$ = create_node(empty_node,DECLARATION,$1,$3,NULL,NULL);
+  declarator_list DECLARATOR type_specifier stmt_terminator {
       int i, j, type_index = 0, id_index = 0, insert_result;
 
       for(i = 0; i < 100; i++) {
@@ -235,6 +307,9 @@ declaration:
           exit(1);
         }
       }
+
+      struct TreeValue empty_node; empty_node.use="none";
+      $$ = create_node(empty_node,DECLARATION,$1,$3,NULL,NULL);
   }
   ;
 
@@ -292,7 +367,7 @@ type_specifier:
   ;
 
 assignation:
-  id_declarator ASSIGNATOR expr NEWLINE{
+  id_declarator ASSIGNATOR expr {
     int id_index;
     id_index = hash_search($1->val.v.s);
     if (id_index == -1){
@@ -575,6 +650,12 @@ comment_block:
     new_node.v.s = yyval.strValue;
     $$ = create_node(new_node, COMMENT_BLOCK, NULL, NULL, NULL, NULL);
   }
+
+stmt_terminator:
+  TERMINATOR NEWLINE {}
+
+ignore_newline:
+  NEWLINE {}
 
 %%
 

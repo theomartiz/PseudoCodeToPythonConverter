@@ -66,7 +66,7 @@ void init_symtable() {
 
 void print_table() {
 	int i;
-	printf("SYMBOL TABLE\n");
+	printf("\nSYMBOL TABLE\n");
 	printf("---------------------------------\n");
 	printf("|INDEX\t|NAME\t|DATATYPE\t|\n");
 	printf("---------------------------------\n");

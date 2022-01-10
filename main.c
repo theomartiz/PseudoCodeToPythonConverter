@@ -24,6 +24,5 @@ int main(int argc, char *argv[])
         yydebug = 1;
     #endif
     yyparse();
-    //print_table();
 	return 0;
 }

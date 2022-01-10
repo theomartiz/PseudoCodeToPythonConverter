@@ -21,9 +21,12 @@ extern int currentSymTabSize;
 ">" return SUP;
 ">=" return SUPEQ;
 "<>" return NOTEQ;
+";" return TERMINATOR;
 and return AND;
 or return OR;
 not return NOT;
+
+<<EOF>> return END_INPUT;
  
  /* Declaration & assignation of variables */
 

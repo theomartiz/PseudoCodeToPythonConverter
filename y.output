@@ -3,11 +3,6 @@ Terminaux inutilisés dans la grammaire
    ABS
    LOG
    EXP
-   FOR
-   TO
-   READ
-   WRITE
-   FUNCTION
    RETURN
 
 
@@ -15,15 +10,15 @@ Grammaire
 
     0 $accept: program $end
 
-    1 program: stmt_list
+    1 program: stmt_list END_INPUT
 
-    2 stmt_block: BEG NEWLINE stmt_list END NEWLINE
+    2 stmt_block: BEG NEWLINE stmt_list END stmt_terminator
 
     3 stmt_list: stmt
     4          | stmt_list stmt
 
     5 stmt: declaration_block
-    6     | assignation
+    6     | assignation stmt_terminator
     7     | comment_block
     8     | IF expr THEN NEWLINE stmt
     9     | IF expr THEN NEWLINE stmt_block
@@ -33,81 +28,91 @@ Grammaire
    13     | IF expr THEN NEWLINE stmt_block ELSE NEWLINE stmt
    14     | WHILE expr DO NEWLINE stmt
    15     | WHILE expr DO NEWLINE stmt_block
+   16     | FOR assignation TO constant DO NEWLINE stmt
+   17     | FOR assignation TO constant DO NEWLINE stmt_block
+   18     | READ '(' id_declarator ')' stmt_terminator
+   19     | WRITE '(' expr ')' stmt_terminator
+   20     | FUNCTION id_declarator '(' declarator_list ')' DECLARATOR type_specifier NEWLINE stmt_block
+   21     | ignore_newline
 
-   16 declaration_block: VAR NEWLINE TAB declaration
-   17                  | declaration_block TAB declaration
+   22 declaration_block: VAR NEWLINE TAB declaration
+   23                  | declaration_block TAB declaration
 
-   18 declaration: declarator_list DECLARATOR type_specifier NEWLINE
+   24 declaration: declarator_list DECLARATOR type_specifier stmt_terminator
 
-   19 declarator_list: id_declarator
-   20                | declarator_list COMMA id_declarator
+   25 declarator_list: id_declarator
+   26                | declarator_list COMMA id_declarator
 
-   21 id_declarator: IDENTIFIER
+   27 id_declarator: IDENTIFIER
 
-   22 type_specifier: INT
-   23               | CHAR
-   24               | STRING
-   25               | BOOLEAN
-   26               | REAL
+   28 type_specifier: INT
+   29               | CHAR
+   30               | STRING
+   31               | BOOLEAN
+   32               | REAL
 
-   27 assignation: id_declarator ASSIGNATOR expr NEWLINE
+   33 assignation: id_declarator ASSIGNATOR expr
 
-   28 constant: INT_VALUE
-   29         | REAL_VALUE
-   30         | STRING_VALUE
-   31         | CHAR_VALUE
-   32         | BOOLEAN_VALUE
-   33         | NULL_VALUE
+   34 constant: INT_VALUE
+   35         | REAL_VALUE
+   36         | STRING_VALUE
+   37         | CHAR_VALUE
+   38         | BOOLEAN_VALUE
+   39         | NULL_VALUE
 
-   34 expr: constant
-   35     | id_declarator
-   36     | '-' expr
-   37     | expr '+' expr
-   38     | expr '-' expr
-   39     | expr '*' expr
-   40     | expr '/' expr
-   41     | expr INF expr
-   42     | expr AND expr
-   43     | expr OR expr
-   44     | NOT expr
-   45     | expr SUP expr
-   46     | expr SUPEQ expr
-   47     | expr INFEQ expr
-   48     | expr NOTEQ expr
-   49     | expr EQ expr
-   50     | expr DIV expr
-   51     | expr MOD expr
-   52     | '(' expr ')'
+   40 expr: constant
+   41     | id_declarator
+   42     | '-' expr
+   43     | expr '+' expr
+   44     | expr '-' expr
+   45     | expr '*' expr
+   46     | expr '/' expr
+   47     | expr INF expr
+   48     | expr AND expr
+   49     | expr OR expr
+   50     | NOT expr
+   51     | expr SUP expr
+   52     | expr SUPEQ expr
+   53     | expr INFEQ expr
+   54     | expr NOTEQ expr
+   55     | expr EQ expr
+   56     | expr DIV expr
+   57     | expr MOD expr
+   58     | '(' expr ')'
 
-   53 comment_block: COMMENT NEWLINE
+   59 comment_block: COMMENT NEWLINE
+
+   60 stmt_terminator: TERMINATOR NEWLINE
+
+   61 ignore_newline: NEWLINE
 
 
 Terminaux, suivis des règles où ils apparaissent
 
 $end (0) 0
-'(' (40) 52
-')' (41) 52
-'*' (42) 39
-'+' (43) 37
-'-' (45) 36 38
-'/' (47) 40
+'(' (40) 18 19 20 58
+')' (41) 18 19 20 58
+'*' (42) 45
+'+' (43) 43
+'-' (45) 42 44
+'/' (47) 46
 error (256)
-INT_VALUE <intValue> (258) 28
-REAL_VALUE <realValue> (259) 29
-CHAR_VALUE <charValue> (260) 31
-BOOLEAN_VALUE <boolValue> (261) 32
-IDENTIFIER <strValue> (262) 21
-STRING_VALUE <strValue> (263) 30
-STRING <strValue> (264) 24
-CHAR <strValue> (265) 23
-BOOLEAN <strValue> (266) 25
-COMMENT <strValue> (267) 53
-VAR (268) 16
-DIV (269) 50
-MOD (270) 51
-AND (271) 42
-OR (272) 43
-NOT (273) 44
+INT_VALUE <intValue> (258) 34
+REAL_VALUE <realValue> (259) 35
+CHAR_VALUE <charValue> (260) 37
+BOOLEAN_VALUE <boolValue> (261) 38
+IDENTIFIER <strValue> (262) 27
+STRING_VALUE <strValue> (263) 36
+STRING <strValue> (264) 30
+CHAR <strValue> (265) 29
+BOOLEAN <strValue> (266) 31
+COMMENT <strValue> (267) 59
+VAR (268) 22
+DIV (269) 56
+MOD (270) 57
+AND (271) 48
+OR (272) 49
+NOT (273) 50
 ABS (274)
 LOG (275)
 EXP (276)
@@ -117,64 +122,70 @@ IF (279) 8 9 10 11 12 13
 THEN (280) 8 9 10 11 12 13
 ELSE (281) 10 11 12 13
 WHILE (282) 14 15
-DO (283) 14 15
-FOR (284)
-TO (285)
-READ (286)
-WRITE (287)
-FUNCTION (288)
+DO (283) 14 15 16 17
+FOR (284) 16 17
+TO (285) 16 17
+READ (286) 18
+WRITE (287) 19
+FUNCTION (288) 20
 RETURN (289)
-NULL_VALUE (290) 33
-EQ (291) 49
-INF (292) 41
-INFEQ (293) 47
-SUP (294) 45
-SUPEQ (295) 46
-NOTEQ (296) 48
-COMMA (297) 20
-TAB (298) 16 17
-NEWLINE (299) 2 8 9 10 11 12 13 14 15 16 18 27 53
-DECLARATOR (300) 18
-ASSIGNATOR (301) 27
-INT (302) 22
-REAL (303) 26
-UMINUS (304)
-IFX (305)
+NULL_VALUE (290) 39
+EQ (291) 55
+INF (292) 47
+INFEQ (293) 53
+SUP (294) 51
+SUPEQ (295) 52
+NOTEQ (296) 54
+COMMA (297) 26
+TAB (298) 22 23
+NEWLINE (299) 2 8 9 10 11 12 13 14 15 16 17 20 22 59 60 61
+DECLARATOR (300) 20 24
+ASSIGNATOR (301) 33
+INT (302) 28
+REAL (303) 32
+END_INPUT (304) 1
+TERMINATOR (305) 60
+UMINUS (306)
+IFX (307)
 
 
 Non-terminaux, suivis des règles où ils apparaissent
 
-$accept (57)
+$accept (59)
     à gauche: 0
-program <treeVal> (58)
+program <treeVal> (60)
     à gauche: 1, à droite: 0
-stmt_block <treeVal> (59)
-    à gauche: 2, à droite: 9 11 12 13 15
-stmt_list <treeVal> (60)
+stmt_block <treeVal> (61)
+    à gauche: 2, à droite: 9 11 12 13 15 17 20
+stmt_list <treeVal> (62)
     à gauche: 3 4, à droite: 1 2 4
-stmt <treeVal> (61)
-    à gauche: 5 6 7 8 9 10 11 12 13 14 15, à droite: 3 4 8 10 12
-    13 14
-declaration_block <treeVal> (62)
-    à gauche: 16 17, à droite: 5 17
-declaration <treeVal> (63)
-    à gauche: 18, à droite: 16 17
-declarator_list <treeVal> (64)
-    à gauche: 19 20, à droite: 18 20
-id_declarator <treeVal> (65)
-    à gauche: 21, à droite: 19 20 27 35
-type_specifier <treeVal> (66)
-    à gauche: 22 23 24 25 26, à droite: 18
-assignation <treeVal> (67)
-    à gauche: 27, à droite: 6
-constant <treeVal> (68)
-    à gauche: 28 29 30 31 32 33, à droite: 34
-expr <treeVal> (69)
-    à gauche: 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51
-    52, à droite: 8 9 10 11 12 13 14 15 27 36 37 38 39 40 41 42 43
-    44 45 46 47 48 49 50 51 52
-comment_block <treeVal> (70)
-    à gauche: 53, à droite: 7
+stmt <treeVal> (63)
+    à gauche: 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21, à droite:
+    3 4 8 10 12 13 14 16
+declaration_block <treeVal> (64)
+    à gauche: 22 23, à droite: 5 23
+declaration <treeVal> (65)
+    à gauche: 24, à droite: 22 23
+declarator_list <treeVal> (66)
+    à gauche: 25 26, à droite: 20 24 26
+id_declarator <treeVal> (67)
+    à gauche: 27, à droite: 18 20 25 26 33 41
+type_specifier <treeVal> (68)
+    à gauche: 28 29 30 31 32, à droite: 20 24
+assignation <treeVal> (69)
+    à gauche: 33, à droite: 6 16 17
+constant <treeVal> (70)
+    à gauche: 34 35 36 37 38 39, à droite: 16 17 40
+expr <treeVal> (71)
+    à gauche: 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57
+    58, à droite: 8 9 10 11 12 13 14 15 19 33 42 43 44 45 46 47 48
+    49 50 51 52 53 54 55 56 57 58
+comment_block <treeVal> (72)
+    à gauche: 59, à droite: 7
+stmt_terminator (73)
+    à gauche: 60, à droite: 2 6 18 19 24
+ignore_newline (74)
+    à gauche: 61, à droite: 21
 
 
 État 0
@@ -186,35 +197,41 @@ comment_block <treeVal> (70)
     VAR         décalage et aller à l'état 3
     IF          décalage et aller à l'état 4
     WHILE       décalage et aller à l'état 5
+    FOR         décalage et aller à l'état 6
+    READ        décalage et aller à l'état 7
+    WRITE       décalage et aller à l'état 8
+    FUNCTION    décalage et aller à l'état 9
+    NEWLINE     décalage et aller à l'état 10
 
-    program            aller à l'état 6
-    stmt_list          aller à l'état 7
-    stmt               aller à l'état 8
-    declaration_block  aller à l'état 9
-    id_declarator      aller à l'état 10
-    assignation        aller à l'état 11
-    comment_block      aller à l'état 12
+    program            aller à l'état 11
+    stmt_list          aller à l'état 12
+    stmt               aller à l'état 13
+    declaration_block  aller à l'état 14
+    id_declarator      aller à l'état 15
+    assignation        aller à l'état 16
+    comment_block      aller à l'état 17
+    ignore_newline     aller à l'état 18
 
 
 État 1
 
-   21 id_declarator: IDENTIFIER .
+   27 id_declarator: IDENTIFIER .
 
-    $défaut  réduction par utilisation de la règle 21 (id_declarator)
+    $défaut  réduction par utilisation de la règle 27 (id_declarator)
 
 
 État 2
 
-   53 comment_block: COMMENT . NEWLINE
+   59 comment_block: COMMENT . NEWLINE
 
-    NEWLINE  décalage et aller à l'état 13
+    NEWLINE  décalage et aller à l'état 19
 
 
 État 3
 
-   16 declaration_block: VAR . NEWLINE TAB declaration
+   22 declaration_block: VAR . NEWLINE TAB declaration
 
-    NEWLINE  décalage et aller à l'état 14
+    NEWLINE  décalage et aller à l'état 20
 
 
 État 4
@@ -226,20 +243,20 @@ comment_block <treeVal> (70)
    12     | IF . expr THEN NEWLINE stmt ELSE NEWLINE stmt_block
    13     | IF . expr THEN NEWLINE stmt_block ELSE NEWLINE stmt
 
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
     IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
 
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 26
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 32
 
 
 État 5
@@ -247,32 +264,73 @@ comment_block <treeVal> (70)
    14 stmt: WHILE . expr DO NEWLINE stmt
    15     | WHILE . expr DO NEWLINE stmt_block
 
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
     IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
 
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 27
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 33
 
 
 État 6
 
-    0 $accept: program . $end
+   16 stmt: FOR . assignation TO constant DO NEWLINE stmt
+   17     | FOR . assignation TO constant DO NEWLINE stmt_block
 
-    $end  décalage et aller à l'état 28
+    IDENTIFIER  décalage et aller à l'état 1
+
+    id_declarator  aller à l'état 15
+    assignation    aller à l'état 34
 
 
 État 7
 
-    1 program: stmt_list .
+   18 stmt: READ . '(' id_declarator ')' stmt_terminator
+
+    '('  décalage et aller à l'état 35
+
+
+État 8
+
+   19 stmt: WRITE . '(' expr ')' stmt_terminator
+
+    '('  décalage et aller à l'état 36
+
+
+État 9
+
+   20 stmt: FUNCTION . id_declarator '(' declarator_list ')' DECLARATOR type_specifier NEWLINE stmt_block
+
+    IDENTIFIER  décalage et aller à l'état 1
+
+    id_declarator  aller à l'état 37
+
+
+État 10
+
+   61 ignore_newline: NEWLINE .
+
+    $défaut  réduction par utilisation de la règle 61 (ignore_newline)
+
+
+État 11
+
+    0 $accept: program . $end
+
+    $end  décalage et aller à l'état 38
+
+
+État 12
+
+    1 program: stmt_list . END_INPUT
     4 stmt_list: stmt_list . stmt
 
     IDENTIFIER  décalage et aller à l'état 1
@@ -280,185 +338,199 @@ comment_block <treeVal> (70)
     VAR         décalage et aller à l'état 3
     IF          décalage et aller à l'état 4
     WHILE       décalage et aller à l'état 5
+    FOR         décalage et aller à l'état 6
+    READ        décalage et aller à l'état 7
+    WRITE       décalage et aller à l'état 8
+    FUNCTION    décalage et aller à l'état 9
+    NEWLINE     décalage et aller à l'état 10
+    END_INPUT   décalage et aller à l'état 39
 
-    $défaut  réduction par utilisation de la règle 1 (program)
+    stmt               aller à l'état 40
+    declaration_block  aller à l'état 14
+    id_declarator      aller à l'état 15
+    assignation        aller à l'état 16
+    comment_block      aller à l'état 17
+    ignore_newline     aller à l'état 18
 
-    stmt               aller à l'état 29
-    declaration_block  aller à l'état 9
-    id_declarator      aller à l'état 10
-    assignation        aller à l'état 11
-    comment_block      aller à l'état 12
 
-
-État 8
+État 13
 
     3 stmt_list: stmt .
 
     $défaut  réduction par utilisation de la règle 3 (stmt_list)
 
 
-État 9
+État 14
 
     5 stmt: declaration_block .
-   17 declaration_block: declaration_block . TAB declaration
+   23 declaration_block: declaration_block . TAB declaration
 
-    TAB  décalage et aller à l'état 30
+    TAB  décalage et aller à l'état 41
 
     $défaut  réduction par utilisation de la règle 5 (stmt)
 
 
-État 10
+État 15
 
-   27 assignation: id_declarator . ASSIGNATOR expr NEWLINE
+   33 assignation: id_declarator . ASSIGNATOR expr
 
-    ASSIGNATOR  décalage et aller à l'état 31
-
-
-État 11
-
-    6 stmt: assignation .
-
-    $défaut  réduction par utilisation de la règle 6 (stmt)
+    ASSIGNATOR  décalage et aller à l'état 42
 
 
-État 12
+État 16
+
+    6 stmt: assignation . stmt_terminator
+
+    TERMINATOR  décalage et aller à l'état 43
+
+    stmt_terminator  aller à l'état 44
+
+
+État 17
 
     7 stmt: comment_block .
 
     $défaut  réduction par utilisation de la règle 7 (stmt)
 
 
-État 13
-
-   53 comment_block: COMMENT NEWLINE .
-
-    $défaut  réduction par utilisation de la règle 53 (comment_block)
-
-
-État 14
-
-   16 declaration_block: VAR NEWLINE . TAB declaration
-
-    TAB  décalage et aller à l'état 32
-
-
-État 15
-
-   28 constant: INT_VALUE .
-
-    $défaut  réduction par utilisation de la règle 28 (constant)
-
-
-État 16
-
-   29 constant: REAL_VALUE .
-
-    $défaut  réduction par utilisation de la règle 29 (constant)
-
-
-État 17
-
-   31 constant: CHAR_VALUE .
-
-    $défaut  réduction par utilisation de la règle 31 (constant)
-
-
 État 18
 
-   32 constant: BOOLEAN_VALUE .
+   21 stmt: ignore_newline .
 
-    $défaut  réduction par utilisation de la règle 32 (constant)
+    $défaut  réduction par utilisation de la règle 21 (stmt)
 
 
 État 19
 
-   30 constant: STRING_VALUE .
+   59 comment_block: COMMENT NEWLINE .
 
-    $défaut  réduction par utilisation de la règle 30 (constant)
+    $défaut  réduction par utilisation de la règle 59 (comment_block)
 
 
 État 20
 
-   44 expr: NOT . expr
+   22 declaration_block: VAR NEWLINE . TAB declaration
 
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 33
+    TAB  décalage et aller à l'état 45
 
 
 État 21
 
-   33 constant: NULL_VALUE .
+   34 constant: INT_VALUE .
 
-    $défaut  réduction par utilisation de la règle 33 (constant)
+    $défaut  réduction par utilisation de la règle 34 (constant)
 
 
 État 22
 
-   36 expr: '-' . expr
+   35 constant: REAL_VALUE .
 
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 34
+    $défaut  réduction par utilisation de la règle 35 (constant)
 
 
 État 23
 
-   52 expr: '(' . expr ')'
+   37 constant: CHAR_VALUE .
 
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 35
+    $défaut  réduction par utilisation de la règle 37 (constant)
 
 
 État 24
 
-   35 expr: id_declarator .
+   38 constant: BOOLEAN_VALUE .
 
-    $défaut  réduction par utilisation de la règle 35 (expr)
+    $défaut  réduction par utilisation de la règle 38 (constant)
 
 
 État 25
 
-   34 expr: constant .
+   36 constant: STRING_VALUE .
 
-    $défaut  réduction par utilisation de la règle 34 (expr)
+    $défaut  réduction par utilisation de la règle 36 (constant)
 
 
 État 26
+
+   50 expr: NOT . expr
+
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
+
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 46
+
+
+État 27
+
+   39 constant: NULL_VALUE .
+
+    $défaut  réduction par utilisation de la règle 39 (constant)
+
+
+État 28
+
+   42 expr: '-' . expr
+
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
+
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 47
+
+
+État 29
+
+   58 expr: '(' . expr ')'
+
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
+
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 48
+
+
+État 30
+
+   41 expr: id_declarator .
+
+    $défaut  réduction par utilisation de la règle 41 (expr)
+
+
+État 31
+
+   40 expr: constant .
+
+    $défaut  réduction par utilisation de la règle 40 (expr)
+
+
+État 32
 
     8 stmt: IF expr . THEN NEWLINE stmt
     9     | IF expr . THEN NEWLINE stmt_block
@@ -466,295 +538,360 @@ comment_block <treeVal> (70)
    11     | IF expr . THEN NEWLINE stmt_block ELSE NEWLINE stmt_block
    12     | IF expr . THEN NEWLINE stmt ELSE NEWLINE stmt_block
    13     | IF expr . THEN NEWLINE stmt_block ELSE NEWLINE stmt
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
 
-    DIV    décalage et aller à l'état 36
-    MOD    décalage et aller à l'état 37
-    AND    décalage et aller à l'état 38
-    OR     décalage et aller à l'état 39
-    THEN   décalage et aller à l'état 40
-    EQ     décalage et aller à l'état 41
-    INF    décalage et aller à l'état 42
-    INFEQ  décalage et aller à l'état 43
-    SUP    décalage et aller à l'état 44
-    SUPEQ  décalage et aller à l'état 45
-    NOTEQ  décalage et aller à l'état 46
-    '+'    décalage et aller à l'état 47
-    '-'    décalage et aller à l'état 48
-    '*'    décalage et aller à l'état 49
-    '/'    décalage et aller à l'état 50
+    DIV    décalage et aller à l'état 49
+    MOD    décalage et aller à l'état 50
+    AND    décalage et aller à l'état 51
+    OR     décalage et aller à l'état 52
+    THEN   décalage et aller à l'état 53
+    EQ     décalage et aller à l'état 54
+    INF    décalage et aller à l'état 55
+    INFEQ  décalage et aller à l'état 56
+    SUP    décalage et aller à l'état 57
+    SUPEQ  décalage et aller à l'état 58
+    NOTEQ  décalage et aller à l'état 59
+    '+'    décalage et aller à l'état 60
+    '-'    décalage et aller à l'état 61
+    '*'    décalage et aller à l'état 62
+    '/'    décalage et aller à l'état 63
 
 
-État 27
+État 33
 
    14 stmt: WHILE expr . DO NEWLINE stmt
    15     | WHILE expr . DO NEWLINE stmt_block
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
 
-    DIV    décalage et aller à l'état 36
-    MOD    décalage et aller à l'état 37
-    AND    décalage et aller à l'état 38
-    OR     décalage et aller à l'état 39
-    DO     décalage et aller à l'état 51
-    EQ     décalage et aller à l'état 41
-    INF    décalage et aller à l'état 42
-    INFEQ  décalage et aller à l'état 43
-    SUP    décalage et aller à l'état 44
-    SUPEQ  décalage et aller à l'état 45
-    NOTEQ  décalage et aller à l'état 46
-    '+'    décalage et aller à l'état 47
-    '-'    décalage et aller à l'état 48
-    '*'    décalage et aller à l'état 49
-    '/'    décalage et aller à l'état 50
+    DIV    décalage et aller à l'état 49
+    MOD    décalage et aller à l'état 50
+    AND    décalage et aller à l'état 51
+    OR     décalage et aller à l'état 52
+    DO     décalage et aller à l'état 64
+    EQ     décalage et aller à l'état 54
+    INF    décalage et aller à l'état 55
+    INFEQ  décalage et aller à l'état 56
+    SUP    décalage et aller à l'état 57
+    SUPEQ  décalage et aller à l'état 58
+    NOTEQ  décalage et aller à l'état 59
+    '+'    décalage et aller à l'état 60
+    '-'    décalage et aller à l'état 61
+    '*'    décalage et aller à l'état 62
+    '/'    décalage et aller à l'état 63
 
 
-État 28
+État 34
+
+   16 stmt: FOR assignation . TO constant DO NEWLINE stmt
+   17     | FOR assignation . TO constant DO NEWLINE stmt_block
+
+    TO  décalage et aller à l'état 65
+
+
+État 35
+
+   18 stmt: READ '(' . id_declarator ')' stmt_terminator
+
+    IDENTIFIER  décalage et aller à l'état 1
+
+    id_declarator  aller à l'état 66
+
+
+État 36
+
+   19 stmt: WRITE '(' . expr ')' stmt_terminator
+
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
+
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 67
+
+
+État 37
+
+   20 stmt: FUNCTION id_declarator . '(' declarator_list ')' DECLARATOR type_specifier NEWLINE stmt_block
+
+    '('  décalage et aller à l'état 68
+
+
+État 38
 
     0 $accept: program $end .
 
     $défaut  accepter
 
 
-État 29
+État 39
+
+    1 program: stmt_list END_INPUT .
+
+    $défaut  réduction par utilisation de la règle 1 (program)
+
+
+État 40
 
     4 stmt_list: stmt_list stmt .
 
     $défaut  réduction par utilisation de la règle 4 (stmt_list)
 
 
-État 30
+État 41
 
-   17 declaration_block: declaration_block TAB . declaration
-
-    IDENTIFIER  décalage et aller à l'état 1
-
-    declaration      aller à l'état 52
-    declarator_list  aller à l'état 53
-    id_declarator    aller à l'état 54
-
-
-État 31
-
-   27 assignation: id_declarator ASSIGNATOR . expr NEWLINE
-
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 55
-
-
-État 32
-
-   16 declaration_block: VAR NEWLINE TAB . declaration
+   23 declaration_block: declaration_block TAB . declaration
 
     IDENTIFIER  décalage et aller à l'état 1
 
-    declaration      aller à l'état 56
-    declarator_list  aller à l'état 53
-    id_declarator    aller à l'état 54
+    declaration      aller à l'état 69
+    declarator_list  aller à l'état 70
+    id_declarator    aller à l'état 71
 
 
-État 33
+État 42
 
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   44     | NOT expr .
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
+   33 assignation: id_declarator ASSIGNATOR . expr
 
-    DIV  décalage et aller à l'état 36
-    MOD  décalage et aller à l'état 37
-    '+'  décalage et aller à l'état 47
-    '-'  décalage et aller à l'état 48
-    '*'  décalage et aller à l'état 49
-    '/'  décalage et aller à l'état 50
-
-    $défaut  réduction par utilisation de la règle 44 (expr)
-
-
-État 34
-
-   36 expr: '-' expr .
-   37     | expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
-
-    $défaut  réduction par utilisation de la règle 36 (expr)
-
-
-État 35
-
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
-   52     | '(' expr . ')'
-
-    DIV    décalage et aller à l'état 36
-    MOD    décalage et aller à l'état 37
-    AND    décalage et aller à l'état 38
-    OR     décalage et aller à l'état 39
-    EQ     décalage et aller à l'état 41
-    INF    décalage et aller à l'état 42
-    INFEQ  décalage et aller à l'état 43
-    SUP    décalage et aller à l'état 44
-    SUPEQ  décalage et aller à l'état 45
-    NOTEQ  décalage et aller à l'état 46
-    '+'    décalage et aller à l'état 47
-    '-'    décalage et aller à l'état 48
-    '*'    décalage et aller à l'état 49
-    '/'    décalage et aller à l'état 50
-    ')'    décalage et aller à l'état 57
-
-
-État 36
-
-   50 expr: expr DIV . expr
-
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
     IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
 
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 58
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 72
 
 
-État 37
+État 43
 
-   51 expr: expr MOD . expr
+   60 stmt_terminator: TERMINATOR . NEWLINE
 
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
+    NEWLINE  décalage et aller à l'état 73
+
+
+État 44
+
+    6 stmt: assignation stmt_terminator .
+
+    $défaut  réduction par utilisation de la règle 6 (stmt)
+
+
+État 45
+
+   22 declaration_block: VAR NEWLINE TAB . declaration
+
+    IDENTIFIER  décalage et aller à l'état 1
+
+    declaration      aller à l'état 74
+    declarator_list  aller à l'état 70
+    id_declarator    aller à l'état 71
+
+
+État 46
+
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   50     | NOT expr .
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
+
+    DIV  décalage et aller à l'état 49
+    MOD  décalage et aller à l'état 50
+    '+'  décalage et aller à l'état 60
+    '-'  décalage et aller à l'état 61
+    '*'  décalage et aller à l'état 62
+    '/'  décalage et aller à l'état 63
+
+    $défaut  réduction par utilisation de la règle 50 (expr)
+
+
+État 47
+
+   42 expr: '-' expr .
+   43     | expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
+
+    $défaut  réduction par utilisation de la règle 42 (expr)
+
+
+État 48
+
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
+   58     | '(' expr . ')'
+
+    DIV    décalage et aller à l'état 49
+    MOD    décalage et aller à l'état 50
+    AND    décalage et aller à l'état 51
+    OR     décalage et aller à l'état 52
+    EQ     décalage et aller à l'état 54
+    INF    décalage et aller à l'état 55
+    INFEQ  décalage et aller à l'état 56
+    SUP    décalage et aller à l'état 57
+    SUPEQ  décalage et aller à l'état 58
+    NOTEQ  décalage et aller à l'état 59
+    '+'    décalage et aller à l'état 60
+    '-'    décalage et aller à l'état 61
+    '*'    décalage et aller à l'état 62
+    '/'    décalage et aller à l'état 63
+    ')'    décalage et aller à l'état 75
+
+
+État 49
+
+   56 expr: expr DIV . expr
+
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
     IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
 
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 59
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 76
 
 
-État 38
+État 50
 
-   42 expr: expr AND . expr
+   57 expr: expr MOD . expr
 
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
     IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
 
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 60
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 77
 
 
-État 39
+État 51
 
-   43 expr: expr OR . expr
+   48 expr: expr AND . expr
 
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
     IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
 
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 61
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 78
 
 
-État 40
+État 52
+
+   49 expr: expr OR . expr
+
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
+
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 79
+
+
+État 53
 
     8 stmt: IF expr THEN . NEWLINE stmt
     9     | IF expr THEN . NEWLINE stmt_block
@@ -763,388 +900,463 @@ comment_block <treeVal> (70)
    12     | IF expr THEN . NEWLINE stmt ELSE NEWLINE stmt_block
    13     | IF expr THEN . NEWLINE stmt_block ELSE NEWLINE stmt
 
-    NEWLINE  décalage et aller à l'état 62
-
-
-État 41
-
-   49 expr: expr EQ . expr
-
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 63
-
-
-État 42
-
-   41 expr: expr INF . expr
-
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 64
-
-
-État 43
-
-   47 expr: expr INFEQ . expr
-
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 65
-
-
-État 44
-
-   45 expr: expr SUP . expr
-
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 66
-
-
-État 45
-
-   46 expr: expr SUPEQ . expr
-
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 67
-
-
-État 46
-
-   48 expr: expr NOTEQ . expr
-
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 68
-
-
-État 47
-
-   37 expr: expr '+' . expr
-
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 69
-
-
-État 48
-
-   38 expr: expr '-' . expr
-
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 70
-
-
-État 49
-
-   39 expr: expr '*' . expr
-
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 71
-
-
-État 50
-
-   40 expr: expr '/' . expr
-
-    INT_VALUE      décalage et aller à l'état 15
-    REAL_VALUE     décalage et aller à l'état 16
-    CHAR_VALUE     décalage et aller à l'état 17
-    BOOLEAN_VALUE  décalage et aller à l'état 18
-    IDENTIFIER     décalage et aller à l'état 1
-    STRING_VALUE   décalage et aller à l'état 19
-    NOT            décalage et aller à l'état 20
-    NULL_VALUE     décalage et aller à l'état 21
-    '-'            décalage et aller à l'état 22
-    '('            décalage et aller à l'état 23
-
-    id_declarator  aller à l'état 24
-    constant       aller à l'état 25
-    expr           aller à l'état 72
-
-
-État 51
-
-   14 stmt: WHILE expr DO . NEWLINE stmt
-   15     | WHILE expr DO . NEWLINE stmt_block
-
-    NEWLINE  décalage et aller à l'état 73
-
-
-État 52
-
-   17 declaration_block: declaration_block TAB declaration .
-
-    $défaut  réduction par utilisation de la règle 17 (declaration_block)
-
-
-État 53
-
-   18 declaration: declarator_list . DECLARATOR type_specifier NEWLINE
-   20 declarator_list: declarator_list . COMMA id_declarator
-
-    COMMA       décalage et aller à l'état 74
-    DECLARATOR  décalage et aller à l'état 75
+    NEWLINE  décalage et aller à l'état 80
 
 
 État 54
 
-   19 declarator_list: id_declarator .
+   55 expr: expr EQ . expr
 
-    $défaut  réduction par utilisation de la règle 19 (declarator_list)
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
+
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 81
 
 
 État 55
 
-   27 assignation: id_declarator ASSIGNATOR expr . NEWLINE
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
+   47 expr: expr INF . expr
 
-    DIV      décalage et aller à l'état 36
-    MOD      décalage et aller à l'état 37
-    AND      décalage et aller à l'état 38
-    OR       décalage et aller à l'état 39
-    EQ       décalage et aller à l'état 41
-    INF      décalage et aller à l'état 42
-    INFEQ    décalage et aller à l'état 43
-    SUP      décalage et aller à l'état 44
-    SUPEQ    décalage et aller à l'état 45
-    NOTEQ    décalage et aller à l'état 46
-    NEWLINE  décalage et aller à l'état 76
-    '+'      décalage et aller à l'état 47
-    '-'      décalage et aller à l'état 48
-    '*'      décalage et aller à l'état 49
-    '/'      décalage et aller à l'état 50
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
+
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 82
 
 
 État 56
 
-   16 declaration_block: VAR NEWLINE TAB declaration .
+   53 expr: expr INFEQ . expr
 
-    $défaut  réduction par utilisation de la règle 16 (declaration_block)
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
+
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 83
 
 
 État 57
 
-   52 expr: '(' expr ')' .
+   51 expr: expr SUP . expr
 
-    $défaut  réduction par utilisation de la règle 52 (expr)
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
+
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 84
 
 
 État 58
 
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   50     | expr DIV expr .
-   51     | expr . MOD expr
+   52 expr: expr SUPEQ . expr
 
-    $défaut  réduction par utilisation de la règle 50 (expr)
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
+
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 85
 
 
 État 59
 
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
-   51     | expr MOD expr .
+   54 expr: expr NOTEQ . expr
 
-    $défaut  réduction par utilisation de la règle 51 (expr)
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
+
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 86
 
 
 État 60
 
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   42     | expr AND expr .
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
+   43 expr: expr '+' . expr
 
-    DIV  décalage et aller à l'état 36
-    MOD  décalage et aller à l'état 37
-    '+'  décalage et aller à l'état 47
-    '-'  décalage et aller à l'état 48
-    '*'  décalage et aller à l'état 49
-    '/'  décalage et aller à l'état 50
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
 
-    $défaut  réduction par utilisation de la règle 42 (expr)
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 87
 
 
 État 61
 
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   43     | expr OR expr .
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
+   44 expr: expr '-' . expr
 
-    DIV  décalage et aller à l'état 36
-    MOD  décalage et aller à l'état 37
-    '+'  décalage et aller à l'état 47
-    '-'  décalage et aller à l'état 48
-    '*'  décalage et aller à l'état 49
-    '/'  décalage et aller à l'état 50
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
 
-    $défaut  réduction par utilisation de la règle 43 (expr)
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 88
 
 
 État 62
+
+   45 expr: expr '*' . expr
+
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
+
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 89
+
+
+État 63
+
+   46 expr: expr '/' . expr
+
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    IDENTIFIER     décalage et aller à l'état 1
+    STRING_VALUE   décalage et aller à l'état 25
+    NOT            décalage et aller à l'état 26
+    NULL_VALUE     décalage et aller à l'état 27
+    '-'            décalage et aller à l'état 28
+    '('            décalage et aller à l'état 29
+
+    id_declarator  aller à l'état 30
+    constant       aller à l'état 31
+    expr           aller à l'état 90
+
+
+État 64
+
+   14 stmt: WHILE expr DO . NEWLINE stmt
+   15     | WHILE expr DO . NEWLINE stmt_block
+
+    NEWLINE  décalage et aller à l'état 91
+
+
+État 65
+
+   16 stmt: FOR assignation TO . constant DO NEWLINE stmt
+   17     | FOR assignation TO . constant DO NEWLINE stmt_block
+
+    INT_VALUE      décalage et aller à l'état 21
+    REAL_VALUE     décalage et aller à l'état 22
+    CHAR_VALUE     décalage et aller à l'état 23
+    BOOLEAN_VALUE  décalage et aller à l'état 24
+    STRING_VALUE   décalage et aller à l'état 25
+    NULL_VALUE     décalage et aller à l'état 27
+
+    constant  aller à l'état 92
+
+
+État 66
+
+   18 stmt: READ '(' id_declarator . ')' stmt_terminator
+
+    ')'  décalage et aller à l'état 93
+
+
+État 67
+
+   19 stmt: WRITE '(' expr . ')' stmt_terminator
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
+
+    DIV    décalage et aller à l'état 49
+    MOD    décalage et aller à l'état 50
+    AND    décalage et aller à l'état 51
+    OR     décalage et aller à l'état 52
+    EQ     décalage et aller à l'état 54
+    INF    décalage et aller à l'état 55
+    INFEQ  décalage et aller à l'état 56
+    SUP    décalage et aller à l'état 57
+    SUPEQ  décalage et aller à l'état 58
+    NOTEQ  décalage et aller à l'état 59
+    '+'    décalage et aller à l'état 60
+    '-'    décalage et aller à l'état 61
+    '*'    décalage et aller à l'état 62
+    '/'    décalage et aller à l'état 63
+    ')'    décalage et aller à l'état 94
+
+
+État 68
+
+   20 stmt: FUNCTION id_declarator '(' . declarator_list ')' DECLARATOR type_specifier NEWLINE stmt_block
+
+    IDENTIFIER  décalage et aller à l'état 1
+
+    declarator_list  aller à l'état 95
+    id_declarator    aller à l'état 71
+
+
+État 69
+
+   23 declaration_block: declaration_block TAB declaration .
+
+    $défaut  réduction par utilisation de la règle 23 (declaration_block)
+
+
+État 70
+
+   24 declaration: declarator_list . DECLARATOR type_specifier stmt_terminator
+   26 declarator_list: declarator_list . COMMA id_declarator
+
+    COMMA       décalage et aller à l'état 96
+    DECLARATOR  décalage et aller à l'état 97
+
+
+État 71
+
+   25 declarator_list: id_declarator .
+
+    $défaut  réduction par utilisation de la règle 25 (declarator_list)
+
+
+État 72
+
+   33 assignation: id_declarator ASSIGNATOR expr .
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
+
+    DIV    décalage et aller à l'état 49
+    MOD    décalage et aller à l'état 50
+    AND    décalage et aller à l'état 51
+    OR     décalage et aller à l'état 52
+    EQ     décalage et aller à l'état 54
+    INF    décalage et aller à l'état 55
+    INFEQ  décalage et aller à l'état 56
+    SUP    décalage et aller à l'état 57
+    SUPEQ  décalage et aller à l'état 58
+    NOTEQ  décalage et aller à l'état 59
+    '+'    décalage et aller à l'état 60
+    '-'    décalage et aller à l'état 61
+    '*'    décalage et aller à l'état 62
+    '/'    décalage et aller à l'état 63
+
+    $défaut  réduction par utilisation de la règle 33 (assignation)
+
+
+État 73
+
+   60 stmt_terminator: TERMINATOR NEWLINE .
+
+    $défaut  réduction par utilisation de la règle 60 (stmt_terminator)
+
+
+État 74
+
+   22 declaration_block: VAR NEWLINE TAB declaration .
+
+    $défaut  réduction par utilisation de la règle 22 (declaration_block)
+
+
+État 75
+
+   58 expr: '(' expr ')' .
+
+    $défaut  réduction par utilisation de la règle 58 (expr)
+
+
+État 76
+
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   56     | expr DIV expr .
+   57     | expr . MOD expr
+
+    $défaut  réduction par utilisation de la règle 56 (expr)
+
+
+État 77
+
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
+   57     | expr MOD expr .
+
+    $défaut  réduction par utilisation de la règle 57 (expr)
+
+
+État 78
+
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   48     | expr AND expr .
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
+
+    DIV  décalage et aller à l'état 49
+    MOD  décalage et aller à l'état 50
+    '+'  décalage et aller à l'état 60
+    '-'  décalage et aller à l'état 61
+    '*'  décalage et aller à l'état 62
+    '/'  décalage et aller à l'état 63
+
+    $défaut  réduction par utilisation de la règle 48 (expr)
+
+
+État 79
+
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   49     | expr OR expr .
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
+
+    DIV  décalage et aller à l'état 49
+    MOD  décalage et aller à l'état 50
+    '+'  décalage et aller à l'état 60
+    '-'  décalage et aller à l'état 61
+    '*'  décalage et aller à l'état 62
+    '/'  décalage et aller à l'état 63
+
+    $défaut  réduction par utilisation de la règle 49 (expr)
+
+
+État 80
 
     8 stmt: IF expr THEN NEWLINE . stmt
     9     | IF expr THEN NEWLINE . stmt_block
@@ -1156,281 +1368,287 @@ comment_block <treeVal> (70)
     IDENTIFIER  décalage et aller à l'état 1
     COMMENT     décalage et aller à l'état 2
     VAR         décalage et aller à l'état 3
-    BEG         décalage et aller à l'état 77
+    BEG         décalage et aller à l'état 98
     IF          décalage et aller à l'état 4
     WHILE       décalage et aller à l'état 5
+    FOR         décalage et aller à l'état 6
+    READ        décalage et aller à l'état 7
+    WRITE       décalage et aller à l'état 8
+    FUNCTION    décalage et aller à l'état 9
+    NEWLINE     décalage et aller à l'état 10
 
-    stmt_block         aller à l'état 78
-    stmt               aller à l'état 79
-    declaration_block  aller à l'état 9
-    id_declarator      aller à l'état 10
-    assignation        aller à l'état 11
-    comment_block      aller à l'état 12
-
-
-État 63
-
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   49     | expr EQ expr .
-   50     | expr . DIV expr
-   51     | expr . MOD expr
-
-    DIV  décalage et aller à l'état 36
-    MOD  décalage et aller à l'état 37
-    '+'  décalage et aller à l'état 47
-    '-'  décalage et aller à l'état 48
-    '*'  décalage et aller à l'état 49
-    '/'  décalage et aller à l'état 50
-
-    $défaut  réduction par utilisation de la règle 49 (expr)
+    stmt_block         aller à l'état 99
+    stmt               aller à l'état 100
+    declaration_block  aller à l'état 14
+    id_declarator      aller à l'état 15
+    assignation        aller à l'état 16
+    comment_block      aller à l'état 17
+    ignore_newline     aller à l'état 18
 
 
-État 64
+État 81
 
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   41     | expr INF expr .
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   55     | expr EQ expr .
+   56     | expr . DIV expr
+   57     | expr . MOD expr
 
-    DIV  décalage et aller à l'état 36
-    MOD  décalage et aller à l'état 37
-    '+'  décalage et aller à l'état 47
-    '-'  décalage et aller à l'état 48
-    '*'  décalage et aller à l'état 49
-    '/'  décalage et aller à l'état 50
+    DIV  décalage et aller à l'état 49
+    MOD  décalage et aller à l'état 50
+    '+'  décalage et aller à l'état 60
+    '-'  décalage et aller à l'état 61
+    '*'  décalage et aller à l'état 62
+    '/'  décalage et aller à l'état 63
 
-    $défaut  réduction par utilisation de la règle 41 (expr)
+    $défaut  réduction par utilisation de la règle 55 (expr)
 
 
-État 65
+État 82
 
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   47     | expr INFEQ expr .
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   47     | expr INF expr .
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
 
-    DIV  décalage et aller à l'état 36
-    MOD  décalage et aller à l'état 37
-    '+'  décalage et aller à l'état 47
-    '-'  décalage et aller à l'état 48
-    '*'  décalage et aller à l'état 49
-    '/'  décalage et aller à l'état 50
+    DIV  décalage et aller à l'état 49
+    MOD  décalage et aller à l'état 50
+    '+'  décalage et aller à l'état 60
+    '-'  décalage et aller à l'état 61
+    '*'  décalage et aller à l'état 62
+    '/'  décalage et aller à l'état 63
 
     $défaut  réduction par utilisation de la règle 47 (expr)
 
 
-État 66
+État 83
 
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   45     | expr SUP expr .
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   53     | expr INFEQ expr .
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
 
-    DIV  décalage et aller à l'état 36
-    MOD  décalage et aller à l'état 37
-    '+'  décalage et aller à l'état 47
-    '-'  décalage et aller à l'état 48
-    '*'  décalage et aller à l'état 49
-    '/'  décalage et aller à l'état 50
+    DIV  décalage et aller à l'état 49
+    MOD  décalage et aller à l'état 50
+    '+'  décalage et aller à l'état 60
+    '-'  décalage et aller à l'état 61
+    '*'  décalage et aller à l'état 62
+    '/'  décalage et aller à l'état 63
+
+    $défaut  réduction par utilisation de la règle 53 (expr)
+
+
+État 84
+
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   51     | expr SUP expr .
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
+
+    DIV  décalage et aller à l'état 49
+    MOD  décalage et aller à l'état 50
+    '+'  décalage et aller à l'état 60
+    '-'  décalage et aller à l'état 61
+    '*'  décalage et aller à l'état 62
+    '/'  décalage et aller à l'état 63
+
+    $défaut  réduction par utilisation de la règle 51 (expr)
+
+
+État 85
+
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   52     | expr SUPEQ expr .
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
+
+    DIV  décalage et aller à l'état 49
+    MOD  décalage et aller à l'état 50
+    '+'  décalage et aller à l'état 60
+    '-'  décalage et aller à l'état 61
+    '*'  décalage et aller à l'état 62
+    '/'  décalage et aller à l'état 63
+
+    $défaut  réduction par utilisation de la règle 52 (expr)
+
+
+État 86
+
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   54     | expr NOTEQ expr .
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
+
+    DIV  décalage et aller à l'état 49
+    MOD  décalage et aller à l'état 50
+    '+'  décalage et aller à l'état 60
+    '-'  décalage et aller à l'état 61
+    '*'  décalage et aller à l'état 62
+    '/'  décalage et aller à l'état 63
+
+    $défaut  réduction par utilisation de la règle 54 (expr)
+
+
+État 87
+
+   43 expr: expr . '+' expr
+   43     | expr '+' expr .
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
+
+    DIV  décalage et aller à l'état 49
+    MOD  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 62
+    '/'  décalage et aller à l'état 63
+
+    $défaut  réduction par utilisation de la règle 43 (expr)
+
+
+État 88
+
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   44     | expr '-' expr .
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
+
+    DIV  décalage et aller à l'état 49
+    MOD  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 62
+    '/'  décalage et aller à l'état 63
+
+    $défaut  réduction par utilisation de la règle 44 (expr)
+
+
+État 89
+
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   45     | expr '*' expr .
+   46     | expr . '/' expr
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
 
     $défaut  réduction par utilisation de la règle 45 (expr)
 
 
-État 67
+État 90
 
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   46     | expr SUPEQ expr .
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
-
-    DIV  décalage et aller à l'état 36
-    MOD  décalage et aller à l'état 37
-    '+'  décalage et aller à l'état 47
-    '-'  décalage et aller à l'état 48
-    '*'  décalage et aller à l'état 49
-    '/'  décalage et aller à l'état 50
+   43 expr: expr . '+' expr
+   44     | expr . '-' expr
+   45     | expr . '*' expr
+   46     | expr . '/' expr
+   46     | expr '/' expr .
+   47     | expr . INF expr
+   48     | expr . AND expr
+   49     | expr . OR expr
+   51     | expr . SUP expr
+   52     | expr . SUPEQ expr
+   53     | expr . INFEQ expr
+   54     | expr . NOTEQ expr
+   55     | expr . EQ expr
+   56     | expr . DIV expr
+   57     | expr . MOD expr
 
     $défaut  réduction par utilisation de la règle 46 (expr)
 
 
-État 68
-
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   48     | expr NOTEQ expr .
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
-
-    DIV  décalage et aller à l'état 36
-    MOD  décalage et aller à l'état 37
-    '+'  décalage et aller à l'état 47
-    '-'  décalage et aller à l'état 48
-    '*'  décalage et aller à l'état 49
-    '/'  décalage et aller à l'état 50
-
-    $défaut  réduction par utilisation de la règle 48 (expr)
-
-
-État 69
-
-   37 expr: expr . '+' expr
-   37     | expr '+' expr .
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
-
-    DIV  décalage et aller à l'état 36
-    MOD  décalage et aller à l'état 37
-    '*'  décalage et aller à l'état 49
-    '/'  décalage et aller à l'état 50
-
-    $défaut  réduction par utilisation de la règle 37 (expr)
-
-
-État 70
-
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   38     | expr '-' expr .
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
-
-    DIV  décalage et aller à l'état 36
-    MOD  décalage et aller à l'état 37
-    '*'  décalage et aller à l'état 49
-    '/'  décalage et aller à l'état 50
-
-    $défaut  réduction par utilisation de la règle 38 (expr)
-
-
-État 71
-
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   39     | expr '*' expr .
-   40     | expr . '/' expr
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
-
-    $défaut  réduction par utilisation de la règle 39 (expr)
-
-
-État 72
-
-   37 expr: expr . '+' expr
-   38     | expr . '-' expr
-   39     | expr . '*' expr
-   40     | expr . '/' expr
-   40     | expr '/' expr .
-   41     | expr . INF expr
-   42     | expr . AND expr
-   43     | expr . OR expr
-   45     | expr . SUP expr
-   46     | expr . SUPEQ expr
-   47     | expr . INFEQ expr
-   48     | expr . NOTEQ expr
-   49     | expr . EQ expr
-   50     | expr . DIV expr
-   51     | expr . MOD expr
-
-    $défaut  réduction par utilisation de la règle 40 (expr)
-
-
-État 73
+État 91
 
    14 stmt: WHILE expr DO NEWLINE . stmt
    15     | WHILE expr DO NEWLINE . stmt_block
@@ -1438,200 +1656,316 @@ comment_block <treeVal> (70)
     IDENTIFIER  décalage et aller à l'état 1
     COMMENT     décalage et aller à l'état 2
     VAR         décalage et aller à l'état 3
-    BEG         décalage et aller à l'état 77
+    BEG         décalage et aller à l'état 98
     IF          décalage et aller à l'état 4
     WHILE       décalage et aller à l'état 5
+    FOR         décalage et aller à l'état 6
+    READ        décalage et aller à l'état 7
+    WRITE       décalage et aller à l'état 8
+    FUNCTION    décalage et aller à l'état 9
+    NEWLINE     décalage et aller à l'état 10
 
-    stmt_block         aller à l'état 80
-    stmt               aller à l'état 81
-    declaration_block  aller à l'état 9
-    id_declarator      aller à l'état 10
-    assignation        aller à l'état 11
-    comment_block      aller à l'état 12
+    stmt_block         aller à l'état 101
+    stmt               aller à l'état 102
+    declaration_block  aller à l'état 14
+    id_declarator      aller à l'état 15
+    assignation        aller à l'état 16
+    comment_block      aller à l'état 17
+    ignore_newline     aller à l'état 18
 
 
-État 74
+État 92
 
-   20 declarator_list: declarator_list COMMA . id_declarator
+   16 stmt: FOR assignation TO constant . DO NEWLINE stmt
+   17     | FOR assignation TO constant . DO NEWLINE stmt_block
+
+    DO  décalage et aller à l'état 103
+
+
+État 93
+
+   18 stmt: READ '(' id_declarator ')' . stmt_terminator
+
+    TERMINATOR  décalage et aller à l'état 43
+
+    stmt_terminator  aller à l'état 104
+
+
+État 94
+
+   19 stmt: WRITE '(' expr ')' . stmt_terminator
+
+    TERMINATOR  décalage et aller à l'état 43
+
+    stmt_terminator  aller à l'état 105
+
+
+État 95
+
+   20 stmt: FUNCTION id_declarator '(' declarator_list . ')' DECLARATOR type_specifier NEWLINE stmt_block
+   26 declarator_list: declarator_list . COMMA id_declarator
+
+    COMMA  décalage et aller à l'état 96
+    ')'    décalage et aller à l'état 106
+
+
+État 96
+
+   26 declarator_list: declarator_list COMMA . id_declarator
 
     IDENTIFIER  décalage et aller à l'état 1
 
-    id_declarator  aller à l'état 82
+    id_declarator  aller à l'état 107
 
 
-État 75
+État 97
 
-   18 declaration: declarator_list DECLARATOR . type_specifier NEWLINE
+   24 declaration: declarator_list DECLARATOR . type_specifier stmt_terminator
 
-    STRING   décalage et aller à l'état 83
-    CHAR     décalage et aller à l'état 84
-    BOOLEAN  décalage et aller à l'état 85
-    INT      décalage et aller à l'état 86
-    REAL     décalage et aller à l'état 87
+    STRING   décalage et aller à l'état 108
+    CHAR     décalage et aller à l'état 109
+    BOOLEAN  décalage et aller à l'état 110
+    INT      décalage et aller à l'état 111
+    REAL     décalage et aller à l'état 112
 
-    type_specifier  aller à l'état 88
-
-
-État 76
-
-   27 assignation: id_declarator ASSIGNATOR expr NEWLINE .
-
-    $défaut  réduction par utilisation de la règle 27 (assignation)
+    type_specifier  aller à l'état 113
 
 
-État 77
+État 98
 
-    2 stmt_block: BEG . NEWLINE stmt_list END NEWLINE
+    2 stmt_block: BEG . NEWLINE stmt_list END stmt_terminator
 
-    NEWLINE  décalage et aller à l'état 89
+    NEWLINE  décalage et aller à l'état 114
 
 
-État 78
+État 99
 
     9 stmt: IF expr THEN NEWLINE stmt_block .
    11     | IF expr THEN NEWLINE stmt_block . ELSE NEWLINE stmt_block
    13     | IF expr THEN NEWLINE stmt_block . ELSE NEWLINE stmt
 
-    ELSE  décalage et aller à l'état 90
+    ELSE  décalage et aller à l'état 115
 
     $défaut  réduction par utilisation de la règle 9 (stmt)
 
 
-État 79
+État 100
 
     8 stmt: IF expr THEN NEWLINE stmt .
    10     | IF expr THEN NEWLINE stmt . ELSE NEWLINE stmt
    12     | IF expr THEN NEWLINE stmt . ELSE NEWLINE stmt_block
 
-    ELSE  décalage et aller à l'état 91
+    ELSE  décalage et aller à l'état 116
 
     $défaut  réduction par utilisation de la règle 8 (stmt)
 
 
-État 80
+État 101
 
    15 stmt: WHILE expr DO NEWLINE stmt_block .
 
     $défaut  réduction par utilisation de la règle 15 (stmt)
 
 
-État 81
+État 102
 
    14 stmt: WHILE expr DO NEWLINE stmt .
 
     $défaut  réduction par utilisation de la règle 14 (stmt)
 
 
-État 82
+État 103
 
-   20 declarator_list: declarator_list COMMA id_declarator .
+   16 stmt: FOR assignation TO constant DO . NEWLINE stmt
+   17     | FOR assignation TO constant DO . NEWLINE stmt_block
 
-    $défaut  réduction par utilisation de la règle 20 (declarator_list)
-
-
-État 83
-
-   24 type_specifier: STRING .
-
-    $défaut  réduction par utilisation de la règle 24 (type_specifier)
+    NEWLINE  décalage et aller à l'état 117
 
 
-État 84
+État 104
 
-   23 type_specifier: CHAR .
+   18 stmt: READ '(' id_declarator ')' stmt_terminator .
 
-    $défaut  réduction par utilisation de la règle 23 (type_specifier)
-
-
-État 85
-
-   25 type_specifier: BOOLEAN .
-
-    $défaut  réduction par utilisation de la règle 25 (type_specifier)
+    $défaut  réduction par utilisation de la règle 18 (stmt)
 
 
-État 86
+État 105
 
-   22 type_specifier: INT .
+   19 stmt: WRITE '(' expr ')' stmt_terminator .
 
-    $défaut  réduction par utilisation de la règle 22 (type_specifier)
-
-
-État 87
-
-   26 type_specifier: REAL .
-
-    $défaut  réduction par utilisation de la règle 26 (type_specifier)
+    $défaut  réduction par utilisation de la règle 19 (stmt)
 
 
-État 88
+État 106
 
-   18 declaration: declarator_list DECLARATOR type_specifier . NEWLINE
+   20 stmt: FUNCTION id_declarator '(' declarator_list ')' . DECLARATOR type_specifier NEWLINE stmt_block
 
-    NEWLINE  décalage et aller à l'état 92
+    DECLARATOR  décalage et aller à l'état 118
 
 
-État 89
+État 107
 
-    2 stmt_block: BEG NEWLINE . stmt_list END NEWLINE
+   26 declarator_list: declarator_list COMMA id_declarator .
+
+    $défaut  réduction par utilisation de la règle 26 (declarator_list)
+
+
+État 108
+
+   30 type_specifier: STRING .
+
+    $défaut  réduction par utilisation de la règle 30 (type_specifier)
+
+
+État 109
+
+   29 type_specifier: CHAR .
+
+    $défaut  réduction par utilisation de la règle 29 (type_specifier)
+
+
+État 110
+
+   31 type_specifier: BOOLEAN .
+
+    $défaut  réduction par utilisation de la règle 31 (type_specifier)
+
+
+État 111
+
+   28 type_specifier: INT .
+
+    $défaut  réduction par utilisation de la règle 28 (type_specifier)
+
+
+État 112
+
+   32 type_specifier: REAL .
+
+    $défaut  réduction par utilisation de la règle 32 (type_specifier)
+
+
+État 113
+
+   24 declaration: declarator_list DECLARATOR type_specifier . stmt_terminator
+
+    TERMINATOR  décalage et aller à l'état 43
+
+    stmt_terminator  aller à l'état 119
+
+
+État 114
+
+    2 stmt_block: BEG NEWLINE . stmt_list END stmt_terminator
 
     IDENTIFIER  décalage et aller à l'état 1
     COMMENT     décalage et aller à l'état 2
     VAR         décalage et aller à l'état 3
     IF          décalage et aller à l'état 4
     WHILE       décalage et aller à l'état 5
+    FOR         décalage et aller à l'état 6
+    READ        décalage et aller à l'état 7
+    WRITE       décalage et aller à l'état 8
+    FUNCTION    décalage et aller à l'état 9
+    NEWLINE     décalage et aller à l'état 10
 
-    stmt_list          aller à l'état 93
-    stmt               aller à l'état 8
-    declaration_block  aller à l'état 9
-    id_declarator      aller à l'état 10
-    assignation        aller à l'état 11
-    comment_block      aller à l'état 12
+    stmt_list          aller à l'état 120
+    stmt               aller à l'état 13
+    declaration_block  aller à l'état 14
+    id_declarator      aller à l'état 15
+    assignation        aller à l'état 16
+    comment_block      aller à l'état 17
+    ignore_newline     aller à l'état 18
 
 
-État 90
+État 115
 
    11 stmt: IF expr THEN NEWLINE stmt_block ELSE . NEWLINE stmt_block
    13     | IF expr THEN NEWLINE stmt_block ELSE . NEWLINE stmt
 
-    NEWLINE  décalage et aller à l'état 94
+    NEWLINE  décalage et aller à l'état 121
 
 
-État 91
+État 116
 
    10 stmt: IF expr THEN NEWLINE stmt ELSE . NEWLINE stmt
    12     | IF expr THEN NEWLINE stmt ELSE . NEWLINE stmt_block
 
-    NEWLINE  décalage et aller à l'état 95
+    NEWLINE  décalage et aller à l'état 122
 
 
-État 92
+État 117
 
-   18 declaration: declarator_list DECLARATOR type_specifier NEWLINE .
+   16 stmt: FOR assignation TO constant DO NEWLINE . stmt
+   17     | FOR assignation TO constant DO NEWLINE . stmt_block
 
-    $défaut  réduction par utilisation de la règle 18 (declaration)
+    IDENTIFIER  décalage et aller à l'état 1
+    COMMENT     décalage et aller à l'état 2
+    VAR         décalage et aller à l'état 3
+    BEG         décalage et aller à l'état 98
+    IF          décalage et aller à l'état 4
+    WHILE       décalage et aller à l'état 5
+    FOR         décalage et aller à l'état 6
+    READ        décalage et aller à l'état 7
+    WRITE       décalage et aller à l'état 8
+    FUNCTION    décalage et aller à l'état 9
+    NEWLINE     décalage et aller à l'état 10
+
+    stmt_block         aller à l'état 123
+    stmt               aller à l'état 124
+    declaration_block  aller à l'état 14
+    id_declarator      aller à l'état 15
+    assignation        aller à l'état 16
+    comment_block      aller à l'état 17
+    ignore_newline     aller à l'état 18
 
 
-État 93
+État 118
 
-    2 stmt_block: BEG NEWLINE stmt_list . END NEWLINE
+   20 stmt: FUNCTION id_declarator '(' declarator_list ')' DECLARATOR . type_specifier NEWLINE stmt_block
+
+    STRING   décalage et aller à l'état 108
+    CHAR     décalage et aller à l'état 109
+    BOOLEAN  décalage et aller à l'état 110
+    INT      décalage et aller à l'état 111
+    REAL     décalage et aller à l'état 112
+
+    type_specifier  aller à l'état 125
+
+
+État 119
+
+   24 declaration: declarator_list DECLARATOR type_specifier stmt_terminator .
+
+    $défaut  réduction par utilisation de la règle 24 (declaration)
+
+
+État 120
+
+    2 stmt_block: BEG NEWLINE stmt_list . END stmt_terminator
     4 stmt_list: stmt_list . stmt
 
     IDENTIFIER  décalage et aller à l'état 1
     COMMENT     décalage et aller à l'état 2
     VAR         décalage et aller à l'état 3
-    END         décalage et aller à l'état 96
+    END         décalage et aller à l'état 126
     IF          décalage et aller à l'état 4
     WHILE       décalage et aller à l'état 5
+    FOR         décalage et aller à l'état 6
+    READ        décalage et aller à l'état 7
+    WRITE       décalage et aller à l'état 8
+    FUNCTION    décalage et aller à l'état 9
+    NEWLINE     décalage et aller à l'état 10
 
-    stmt               aller à l'état 29
-    declaration_block  aller à l'état 9
-    id_declarator      aller à l'état 10
-    assignation        aller à l'état 11
-    comment_block      aller à l'état 12
+    stmt               aller à l'état 40
+    declaration_block  aller à l'état 14
+    id_declarator      aller à l'état 15
+    assignation        aller à l'état 16
+    comment_block      aller à l'état 17
+    ignore_newline     aller à l'état 18
 
 
-État 94
+État 121
 
    11 stmt: IF expr THEN NEWLINE stmt_block ELSE NEWLINE . stmt_block
    13     | IF expr THEN NEWLINE stmt_block ELSE NEWLINE . stmt
@@ -1639,19 +1973,25 @@ comment_block <treeVal> (70)
     IDENTIFIER  décalage et aller à l'état 1
     COMMENT     décalage et aller à l'état 2
     VAR         décalage et aller à l'état 3
-    BEG         décalage et aller à l'état 77
+    BEG         décalage et aller à l'état 98
     IF          décalage et aller à l'état 4
     WHILE       décalage et aller à l'état 5
+    FOR         décalage et aller à l'état 6
+    READ        décalage et aller à l'état 7
+    WRITE       décalage et aller à l'état 8
+    FUNCTION    décalage et aller à l'état 9
+    NEWLINE     décalage et aller à l'état 10
 
-    stmt_block         aller à l'état 97
-    stmt               aller à l'état 98
-    declaration_block  aller à l'état 9
-    id_declarator      aller à l'état 10
-    assignation        aller à l'état 11
-    comment_block      aller à l'état 12
+    stmt_block         aller à l'état 127
+    stmt               aller à l'état 128
+    declaration_block  aller à l'état 14
+    id_declarator      aller à l'état 15
+    assignation        aller à l'état 16
+    comment_block      aller à l'état 17
+    ignore_newline     aller à l'état 18
 
 
-État 95
+État 122
 
    10 stmt: IF expr THEN NEWLINE stmt ELSE NEWLINE . stmt
    12     | IF expr THEN NEWLINE stmt ELSE NEWLINE . stmt_block
@@ -1659,55 +1999,100 @@ comment_block <treeVal> (70)
     IDENTIFIER  décalage et aller à l'état 1
     COMMENT     décalage et aller à l'état 2
     VAR         décalage et aller à l'état 3
-    BEG         décalage et aller à l'état 77
+    BEG         décalage et aller à l'état 98
     IF          décalage et aller à l'état 4
     WHILE       décalage et aller à l'état 5
+    FOR         décalage et aller à l'état 6
+    READ        décalage et aller à l'état 7
+    WRITE       décalage et aller à l'état 8
+    FUNCTION    décalage et aller à l'état 9
+    NEWLINE     décalage et aller à l'état 10
 
-    stmt_block         aller à l'état 99
-    stmt               aller à l'état 100
-    declaration_block  aller à l'état 9
-    id_declarator      aller à l'état 10
-    assignation        aller à l'état 11
-    comment_block      aller à l'état 12
+    stmt_block         aller à l'état 129
+    stmt               aller à l'état 130
+    declaration_block  aller à l'état 14
+    id_declarator      aller à l'état 15
+    assignation        aller à l'état 16
+    comment_block      aller à l'état 17
+    ignore_newline     aller à l'état 18
 
 
-État 96
+État 123
 
-    2 stmt_block: BEG NEWLINE stmt_list END . NEWLINE
+   17 stmt: FOR assignation TO constant DO NEWLINE stmt_block .
 
-    NEWLINE  décalage et aller à l'état 101
+    $défaut  réduction par utilisation de la règle 17 (stmt)
 
 
-État 97
+État 124
+
+   16 stmt: FOR assignation TO constant DO NEWLINE stmt .
+
+    $défaut  réduction par utilisation de la règle 16 (stmt)
+
+
+État 125
+
+   20 stmt: FUNCTION id_declarator '(' declarator_list ')' DECLARATOR type_specifier . NEWLINE stmt_block
+
+    NEWLINE  décalage et aller à l'état 131
+
+
+État 126
+
+    2 stmt_block: BEG NEWLINE stmt_list END . stmt_terminator
+
+    TERMINATOR  décalage et aller à l'état 43
+
+    stmt_terminator  aller à l'état 132
+
+
+État 127
 
    11 stmt: IF expr THEN NEWLINE stmt_block ELSE NEWLINE stmt_block .
 
     $défaut  réduction par utilisation de la règle 11 (stmt)
 
 
-État 98
+État 128
 
    13 stmt: IF expr THEN NEWLINE stmt_block ELSE NEWLINE stmt .
 
     $défaut  réduction par utilisation de la règle 13 (stmt)
 
 
-État 99
+État 129
 
    12 stmt: IF expr THEN NEWLINE stmt ELSE NEWLINE stmt_block .
 
     $défaut  réduction par utilisation de la règle 12 (stmt)
 
 
-État 100
+État 130
 
    10 stmt: IF expr THEN NEWLINE stmt ELSE NEWLINE stmt .
 
     $défaut  réduction par utilisation de la règle 10 (stmt)
 
 
-État 101
+État 131
 
-    2 stmt_block: BEG NEWLINE stmt_list END NEWLINE .
+   20 stmt: FUNCTION id_declarator '(' declarator_list ')' DECLARATOR type_specifier NEWLINE . stmt_block
+
+    BEG  décalage et aller à l'état 98
+
+    stmt_block  aller à l'état 133
+
+
+État 132
+
+    2 stmt_block: BEG NEWLINE stmt_list END stmt_terminator .
 
     $défaut  réduction par utilisation de la règle 2 (stmt_block)
+
+
+État 133
+
+   20 stmt: FUNCTION id_declarator '(' declarator_list ')' DECLARATOR type_specifier NEWLINE stmt_block .
+
+    $défaut  réduction par utilisation de la règle 20 (stmt)
