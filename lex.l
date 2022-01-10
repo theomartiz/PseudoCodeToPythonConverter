@@ -34,7 +34,7 @@ not return NOT;
 var return VAR;
 
  /* Mathematical functions */
-abs({letter}({letter}|{digit}|"_")*|{digit}+([.]{digit}+)?) return ABS;
+abs return ABS;
 log return LOG;
 exp return EXP;
 
@@ -44,6 +44,7 @@ char return CHAR;
 int return INT;
 real return REAL;
 boolean return BOOLEAN;
+void return VOID;
 
   /* Conditional statements */
 if return IF;
