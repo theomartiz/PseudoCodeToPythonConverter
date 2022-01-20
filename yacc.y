@@ -52,12 +52,13 @@ SYMTABNODEPTR symTab[SYMTABSIZE];
 int currentSymTabSize=0;
 
 void PrintTree(B_TREE);
+void parseTreeToPython();
 void writeStringInPythonFile();
 void writeRealInPythonFile();
 void writeIntInPythonFile();
-void parseTreeToPython();
 void findBooleanOperator();
 void findBasicDataType();
+void findMathOperator();
 %}
 
 /* Basic data types */
@@ -208,7 +209,7 @@ stmt:
       exit(1);
     }
   }
-  | FOR assignation TO constant DO NEWLINE stmt {
+  /* | FOR assignation TO constant DO NEWLINE stmt {
     if (strcmp($2->second->val.use,"int") != 0 || strcmp($4->val.use,"int") != 0){
       yyerror("For-do loop: Variable and constant have to be of type integer.");
       exit(1);
@@ -219,6 +220,24 @@ stmt:
   }
   | FOR assignation TO constant DO NEWLINE stmt_block {
     if (strcmp($2->second->val.use,"int") != 0 || strcmp($4->val.use,"int") != 0){
+      yyerror("For-do loop: Variable and constant have to be of type integer.");
+      exit(1);
+    } else {
+      struct TreeValue empty_node; empty_node.use="none";
+      $$ = create_node(empty_node,FOR_LOOP,$2,$4,$7,NULL); 
+    }
+  } */
+  | FOR id_declarator TO constant DO NEWLINE stmt {
+    if (strcmp($4->val.use,"int") != 0){
+      yyerror("For-do loop: Variable and constant have to be of type integer.");
+      exit(1);
+    } else {
+      struct TreeValue empty_node; empty_node.use="none";
+      $$ = create_node(empty_node,FOR_LOOP,$2,$4,$7,NULL); 
+    }
+  }
+  | FOR id_declarator TO constant DO NEWLINE stmt_block {
+    if (strcmp($4->val.use,"int") != 0){
       yyerror("For-do loop: Variable and constant have to be of type integer.");
       exit(1);
     } else {
@@ -832,119 +851,370 @@ void PrintTree(B_TREE t) {
 	PrintTree(t->fourth);
 }
 
-void parseTreeToPython(B_TREE t) {
- if(t==NULL)
-		return; 
-
-  if(strcmp(labels[(t->nodeIdentifier)],"COMMENT_BLOCK") == 0){
-    printf("written for nodeIdentifier: %s\n",labels[(t->nodeIdentifier)]);
-    writeStringInPythonFile("#");
-    writeStringInPythonFile(t->val.v.s);
-  } else if(strcmp(labels[(t->nodeIdentifier)],"DECLARATION") == 0){
-    printf("written for nodeIdentifier: %s\n",labels[(t->nodeIdentifier)]);
-    writeStringInPythonFile(t->first->first->val.v.s);
-    writeStringInPythonFile(" = ");
-    writeStringInPythonFile("None");
-    writeStringInPythonFile("\n");
-  }else if(strcmp(labels[(t->nodeIdentifier)],"ASSIGNATION") == 0){
-    printf("written for nodeIdentifier: %s\n",labels[(t->nodeIdentifier)]);
-    writeStringInPythonFile(t->first->val.v.s);
-    writeStringInPythonFile(" = ");
-    printf("CONSTANT: %s\n",labels[(t->second->first->nodeIdentifier)]);
-
-    //TODO: MAKE A METHOD FOR THIS BRUH  
-    findBasicDataType(t->second->first);
+void parseTreeToPython(B_TREE t)
+{
+    // TODO(): check stmt, stmtblock etc, check begin/end, check func call
+    // Actuellement le If fonctionne avec un seul statement. Voir comment faire marcher les block, idem pour le for
+    // Les fonctions ont forcément un statement block, donc on a pas réussi à finir cet aspect.
     
-    writeStringInPythonFile("\n");
-    } else if(strcmp(labels[(t->nodeIdentifier)],"IF_ELSE_STMT") == 0){
-    //IF
-    writeStringInPythonFile("if "); 
-    //ID
-    writeStringInPythonFile(t->first->first->first->val.v.s);
-    //Boolean operator
-    findBooleanOperator(labels[(t->first->nodeIdentifier)]);
-    //TODO CONSTANT
-    findBasicDataType(t->first->second->first);
-  
-    writeStringInPythonFile(":\n\t"); 
-    //printf("CST: %s\n",labels[(t->first->second->first->nodeIdentifier)]);
-    //writeStringInPythonFile(t->first->second->first->val.v.s);
-  }else{   
-    printf("nothing written for nodeIdentifier: %s\n",labels[(t->nodeIdentifier)]);
-  }
+    if (t == NULL)
+        return;
 
-  
-  parseTreeToPython(t->first);
-  parseTreeToPython(t->second);
-  parseTreeToPython(t->third);
-  parseTreeToPython(t->fourth);
-}
+    if (strcmp(labels[(t->nodeIdentifier)], "COMMENT_BLOCK") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        writeStringInPythonFile("#");
+        writeStringInPythonFile(t->val.v.s);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "PARENTHESIS") == 0) 
+    {
+        writeStringInPythonFile("(");
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(")");
+    } 
+    else if (strcmp(labels[(t->nodeIdentifier)], "OPPOSITE") == 0) 
+    {
+        writeStringInPythonFile("-");
+        parseTreeToPython(t->first);
+    } 
+    else if (strcmp(labels[(t->nodeIdentifier)], "ADDITION") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" + ");
+        parseTreeToPython(t->second);
+    } 
+    else if (strcmp(labels[(t->nodeIdentifier)], "SOUSTRACTION") == 0) 
+    {
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" - ");
+        parseTreeToPython(t->second);
+    } 
+    else if (strcmp(labels[(t->nodeIdentifier)], "MULTIPLICATION") == 0)
+    {
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" * ");
+        parseTreeToPython(t->second);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "DIVISION") == 0)
+    {
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" / ");
+        parseTreeToPython(t->second);
+        
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "INT_DIVISION") == 0)
+    {
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" // ");
+        parseTreeToPython(t->second);
+        
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "MODULO") == 0)
+    {
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" % ");
+        parseTreeToPython(t->second);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "EXP_FUNC") == 0)
+    {
+        writeStringInPythonFile("math.exp(");
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" ) ");
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "LOG_FUNC") == 0)
+    {
+        writeStringInPythonFile("math.log(");
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(") ");
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "ABS_FUNC") == 0)
+    {
+        writeStringInPythonFile("abs(");
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(") ");
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "SUPERIOR") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" > ");
+        parseTreeToPython(t->second);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "INFERIOR") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" < ");
+        parseTreeToPython(t->second);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "SUPERIOR_EQUAL") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" >= ");
+        parseTreeToPython(t->second);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "INFERIOR_EQUAL") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" <= ");
+        parseTreeToPython(t->second);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "NOT_EQUAL") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" != ");
+        parseTreeToPython(t->second);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "EQUAL") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" == ");
+        parseTreeToPython(t->second);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "AND_OP") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+        writeStringInPythonFile("and ");
+        parseTreeToPython(t->second);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "OR_OP") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+        writeStringInPythonFile("or ");
+        parseTreeToPython(t->second);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "NOT_OP") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        writeStringInPythonFile("not(");
+        parseTreeToPython(t->first);
+        parseTreeToPython(t->second);
+        writeStringInPythonFile(")");
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "CONSTANT_EXPR") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "CONSTANT") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        findBasicDataType(t);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "DECLARATION") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" = ");
+        writeStringInPythonFile("None ");
+        writeStringInPythonFile("\n");
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "ASSIGNATION") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" = ");
+        parseTreeToPython(t->second);
+        writeStringInPythonFile("\n");
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "ID") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        writeStringInPythonFile(t->val.v.s);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "IF_ELSE_STMT") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        writeStringInPythonFile("if ");       
 
-void findBooleanOperator(char *s) {
-    if(strcmp(s,"EQUAL") == 0){
-      writeStringInPythonFile("== ");
-    }else if(strcmp(s,"INFERIOR") == 0){
-      writeStringInPythonFile("< ");
-    }else if(strcmp(s,"SUPERIOR") == 0){
-      writeStringInPythonFile("> ");
-    }else if(strcmp(s,"SUPERIOR_EQUAL") == 0){
-      writeStringInPythonFile(">= ");
-    }else if(strcmp(s,"INFERIOR_EQUAL") == 0){
-      writeStringInPythonFile("<= ");
-    }else if(strcmp(s,"NOT_EQUAL") == 0){
-      writeStringInPythonFile("!= ");
+        parseTreeToPython(t->first);
+
+        writeStringInPythonFile(":\n\t");
+        parseTreeToPython(t->second);
+        if (t->third != NULL) {
+          writeStringInPythonFile("else");
+          writeStringInPythonFile(":\n\t");
+          parseTreeToPython(t->third);
+        }
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "FOR_LOOP") == 0)
+    {
+        writeStringInPythonFile("for ");
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" in range(");
+        parseTreeToPython(t->second);
+        writeStringInPythonFile(")"); 
+        writeStringInPythonFile(":\n\t");;
+        parseTreeToPython(t->third);
+    }
+
+    else if (strcmp(labels[(t->nodeIdentifier)], "WHILE_LOOP") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        // while
+        writeStringInPythonFile("while ");
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(":\n\t");
+        parseTreeToPython(t->second);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "WRITE_STMT") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        writeStringInPythonFile("print(");
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(")\n");
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "READ_STMT") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+        writeStringInPythonFile(" = input(\"Waiting for user input... \" )\n");
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "FUNC_STMT") == 0)
+    {
+        printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        writeStringInPythonFile("def ");
+        parseTreeToPython(t->first);
+        writeStringInPythonFile("( ");
+        parseTreeToPython(t->second);
+        writeStringInPythonFile(" )");
+        writeStringInPythonFile(":\n\t");
+        parseTreeToPython(t->fourth);
+    }
+    else
+    {
+        printf("nothing written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        parseTreeToPython(t->first);
+        parseTreeToPython(t->second);
+        parseTreeToPython(t->third);
+        parseTreeToPython(t->fourth);
     }
 }
 
-void findBasicDataType(B_TREE t) {
-   if(strcmp(t->val.use,"real")==0){
-      writeRealInPythonFile(t->val.v.r);
-    } else if (strcmp(t->val.use,"int")==0) {
-      writeIntInPythonFile(t->val.v.i);
-    } else if (strcmp(t->val.use,"bool")==0) {
-      writeStringInPythonFile(t->val.v.b ? "True" : "False");
-    } else if (strcmp(t->val.use,"string")==0) {
-      writeStringInPythonFile(t->val.v.s);
-    }    
+void findBooleanOperator(char *s)
+{
+    if (strcmp(s, "EQUAL") == 0)
+    {
+        writeStringInPythonFile("== ");
+    }
+    else if (strcmp(s, "INFERIOR") == 0)
+    {
+        writeStringInPythonFile("< ");
+    }
+    else if (strcmp(s, "SUPERIOR") == 0)
+    {
+        writeStringInPythonFile("> ");
+    }
+    else if (strcmp(s, "SUPERIOR_EQUAL") == 0)
+    {
+        writeStringInPythonFile(">= ");
+    }
+    else if (strcmp(s, "INFERIOR_EQUAL") == 0)
+    {
+        writeStringInPythonFile("<= ");
+    }
+    else if (strcmp(s, "NOT_EQUAL") == 0)
+    {
+        writeStringInPythonFile("!= ");
+    }
 }
 
-void writeStringInPythonFile(char *s) {
-  FILE *fptr;
-  fptr = fopen("./code.py", "ab");
-
-  if(fptr == NULL)
-  {
-    printf("Error!");   
-    exit(1);             
-  }
-  fprintf(fptr, "%s", s);  
-  fclose(fptr);
+void findBasicDataType(B_TREE t)
+{
+    if (strcmp(t->val.use, "real") == 0)
+    {
+        writeRealInPythonFile(t->val.v.r);
+    }
+    else if (strcmp(t->val.use, "int") == 0)
+    {
+        writeIntInPythonFile(t->val.v.i);
+    }
+    else if (strcmp(t->val.use, "bool") == 0)
+    {
+        writeStringInPythonFile(t->val.v.b ? "True" : "False");
+    }
+    else if (strcmp(t->val.use, "string") == 0)
+    {
+        writeStringInPythonFile(t->val.v.s);
+    }
 }
 
-void writeRealInPythonFile(long double realValue) {
-  FILE *fptr;
-  fptr = fopen("./code.py", "ab");
-
-  if(fptr == NULL)
-  {
-    printf("Error!");   
-    exit(1);             
-  }
-  fprintf(fptr, "%Lf", realValue);  
-  fclose(fptr);
+void findMathOperator(char *s)
+{
+    //TODO() : add exponential?
+    if (strcmp(s, "ADDITION") == 0)
+    {
+        writeStringInPythonFile("+ ");
+    }
+    else if (strcmp(s, "SOUSTRACTION") == 0)
+    {
+        writeStringInPythonFile("- ");
+    }
+    else if (strcmp(s, "MULTIPLICATION") == 0)
+    {
+        writeStringInPythonFile("* ");
+    }
+    else if (strcmp(s, "DIVISION") == 0)
+    {
+        writeStringInPythonFile("/ ");
+    }
+    else if (strcmp(s, "INT_DIVISION") == 0)
+    {
+        writeStringInPythonFile("// ");
+    }
+    else if (strcmp(s, "MODULO") == 0)
+    {
+        writeStringInPythonFile("% ");
+    }
 }
 
-void writeIntInPythonFile(int intValue) {
-  FILE *fptr;
-  fptr = fopen("./code.py", "ab");
+void writeStringInPythonFile(char *s)
+{
+    FILE *fptr;
+    fptr = fopen("./code.py", "ab");
 
-  if(fptr == NULL)
-  {
-    printf("Error!");   
-    exit(1);             
-  }
-  fprintf(fptr, "%d", intValue);  
-  fclose(fptr);
+    if (fptr == NULL)
+    {
+        printf("Error!");
+        exit(1);
+    }
+    fprintf(fptr, "%s", s);
+    fclose(fptr);
+}
+
+void writeRealInPythonFile(long double realValue)
+{
+    FILE *fptr;
+    fptr = fopen("./code.py", "ab");
+
+    if (fptr == NULL)
+    {
+        printf("Error!");
+        exit(1);
+    }
+    fprintf(fptr, "%Lf", realValue);
+    fclose(fptr);
+}
+
+void writeIntInPythonFile(int intValue)
+{
+    FILE *fptr;
+    fptr = fopen("./code.py", "ab");
+
+    if (fptr == NULL)
+    {
+        printf("Error!");
+        exit(1);
+    }
+    fprintf(fptr, "%d", intValue);
+    fclose(fptr);
 }
 
 
