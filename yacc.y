@@ -52,7 +52,8 @@ SYMTABNODEPTR symTab[SYMTABSIZE];
 int currentSymTabSize=0;
 
 void PrintTree(B_TREE);
-void parseTreeToPython();
+void parseTreeToPython(B_TREE t, int stmt_block_counter);
+void appendTab(int nb);
 void writeStringInPythonFile();
 void writeRealInPythonFile();
 void writeIntInPythonFile();
@@ -101,7 +102,7 @@ program:
     $$ = create_node(empty_node,PROGRAM,$1,NULL,NULL,NULL); 
     PrintTree($$);
     print_table();
-    parseTreeToPython($$);
+    parseTreeToPython($$,false);
     exit(0);
   }
   ;
@@ -209,24 +210,6 @@ stmt:
       exit(1);
     }
   }
-  /* | FOR assignation TO constant DO NEWLINE stmt {
-    if (strcmp($2->second->val.use,"int") != 0 || strcmp($4->val.use,"int") != 0){
-      yyerror("For-do loop: Variable and constant have to be of type integer.");
-      exit(1);
-    } else {
-      struct TreeValue empty_node; empty_node.use="none";
-      $$ = create_node(empty_node,FOR_LOOP,$2,$4,$7,NULL); 
-    }
-  }
-  | FOR assignation TO constant DO NEWLINE stmt_block {
-    if (strcmp($2->second->val.use,"int") != 0 || strcmp($4->val.use,"int") != 0){
-      yyerror("For-do loop: Variable and constant have to be of type integer.");
-      exit(1);
-    } else {
-      struct TreeValue empty_node; empty_node.use="none";
-      $$ = create_node(empty_node,FOR_LOOP,$2,$4,$7,NULL); 
-    }
-  } */
   | FOR id_declarator TO constant DO NEWLINE stmt {
     if (strcmp($4->val.use,"int") != 0){
       yyerror("For-do loop: Variable and constant have to be of type integer.");
@@ -851,14 +834,14 @@ void PrintTree(B_TREE t) {
 	PrintTree(t->fourth);
 }
 
-void parseTreeToPython(B_TREE t)
+void parseTreeToPython(B_TREE t, int stmt_block_counter)
 {
     // TODO(): check stmt, stmtblock etc, check begin/end, check func call
     // Actuellement le If fonctionne avec un seul statement. Voir comment faire marcher les block, idem pour le for
     // Les fonctions ont forcément un statement block, donc on a pas réussi à finir cet aspect.
     
     if (t == NULL)
-        return;
+      return;
 
     if (strcmp(labels[(t->nodeIdentifier)], "COMMENT_BLOCK") == 0)
     {
@@ -869,139 +852,139 @@ void parseTreeToPython(B_TREE t)
     else if (strcmp(labels[(t->nodeIdentifier)], "PARENTHESIS") == 0) 
     {
         writeStringInPythonFile("(");
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(")");
     } 
     else if (strcmp(labels[(t->nodeIdentifier)], "OPPOSITE") == 0) 
     {
         writeStringInPythonFile("-");
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
     } 
     else if (strcmp(labels[(t->nodeIdentifier)], "ADDITION") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" + ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
     } 
     else if (strcmp(labels[(t->nodeIdentifier)], "SOUSTRACTION") == 0) 
     {
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" - ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
     } 
     else if (strcmp(labels[(t->nodeIdentifier)], "MULTIPLICATION") == 0)
     {
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" * ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "DIVISION") == 0)
     {
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" / ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
         
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "INT_DIVISION") == 0)
     {
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" // ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
         
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "MODULO") == 0)
     {
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" % ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "EXP_FUNC") == 0)
     {
         writeStringInPythonFile("math.exp(");
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" ) ");
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "LOG_FUNC") == 0)
     {
         writeStringInPythonFile("math.log(");
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(") ");
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "ABS_FUNC") == 0)
     {
         writeStringInPythonFile("abs(");
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(") ");
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "SUPERIOR") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" > ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "INFERIOR") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" < ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "SUPERIOR_EQUAL") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" >= ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "INFERIOR_EQUAL") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" <= ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "NOT_EQUAL") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" != ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "EQUAL") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" == ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "AND_OP") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile("and ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "OR_OP") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile("or ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "NOT_OP") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
         writeStringInPythonFile("not(");
-        parseTreeToPython(t->first);
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->first,stmt_block_counter);
+        parseTreeToPython(t->second,stmt_block_counter);
         writeStringInPythonFile(")");
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "CONSTANT_EXPR") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "CONSTANT") == 0)
     {
@@ -1011,7 +994,7 @@ void parseTreeToPython(B_TREE t)
     else if (strcmp(labels[(t->nodeIdentifier)], "DECLARATION") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" = ");
         writeStringInPythonFile("None ");
         writeStringInPythonFile("\n");
@@ -1019,9 +1002,9 @@ void parseTreeToPython(B_TREE t)
     else if (strcmp(labels[(t->nodeIdentifier)], "ASSIGNATION") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" = ");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
         writeStringInPythonFile("\n");
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "ID") == 0)
@@ -1032,70 +1015,94 @@ void parseTreeToPython(B_TREE t)
     else if (strcmp(labels[(t->nodeIdentifier)], "IF_ELSE_STMT") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        appendTab(stmt_block_counter);
         writeStringInPythonFile("if ");       
 
-        parseTreeToPython(t->first);
-
-        writeStringInPythonFile(":\n\t");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->first,stmt_block_counter);
+        writeStringInPythonFile(":\n");
+        parseTreeToPython(t->second,stmt_block_counter+1);
         if (t->third != NULL) {
+          appendTab(stmt_block_counter);
           writeStringInPythonFile("else");
-          writeStringInPythonFile(":\n\t");
-          parseTreeToPython(t->third);
+          writeStringInPythonFile(":\n");
+          parseTreeToPython(t->third,stmt_block_counter+1);
         }
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "FOR_LOOP") == 0)
     {
+        appendTab(stmt_block_counter);
         writeStringInPythonFile("for ");
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" in range(");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->second,stmt_block_counter);
         writeStringInPythonFile(")"); 
-        writeStringInPythonFile(":\n\t");;
-        parseTreeToPython(t->third);
+        writeStringInPythonFile(":\n");;
+        parseTreeToPython(t->third,stmt_block_counter+1);
     }
 
     else if (strcmp(labels[(t->nodeIdentifier)], "WHILE_LOOP") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
         // while
+        appendTab(stmt_block_counter);
         writeStringInPythonFile("while ");
-        parseTreeToPython(t->first);
-        writeStringInPythonFile(":\n\t");
-        parseTreeToPython(t->second);
+        parseTreeToPython(t->first,stmt_block_counter);
+        writeStringInPythonFile(":\n");
+        parseTreeToPython(t->second,stmt_block_counter+1);
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "WRITE_STMT") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        appendTab(stmt_block_counter);
         writeStringInPythonFile("print(");
-        parseTreeToPython(t->first);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(")\n");
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "READ_STMT") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
+        appendTab(stmt_block_counter);
+        parseTreeToPython(t->first,stmt_block_counter);
         writeStringInPythonFile(" = input(\"Waiting for user input... \" )\n");
     }
     else if (strcmp(labels[(t->nodeIdentifier)], "FUNC_STMT") == 0)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+        appendTab(stmt_block_counter);
         writeStringInPythonFile("def ");
-        parseTreeToPython(t->first);
-        writeStringInPythonFile("( ");
-        parseTreeToPython(t->second);
-        writeStringInPythonFile(" )");
-        writeStringInPythonFile(":\n\t");
-        parseTreeToPython(t->fourth);
+        parseTreeToPython(t->first,stmt_block_counter);
+        writeStringInPythonFile("(");
+        parseTreeToPython(t->second,stmt_block_counter);
+        writeStringInPythonFile(")");
+        writeStringInPythonFile(":\n");
+        parseTreeToPython(t->fourth,stmt_block_counter+1);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "STMT") == 0){
+      printf("nothing written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
+      appendTab(stmt_block_counter);
+      parseTreeToPython(t->first,stmt_block_counter);
+    }
+    else if (strcmp(labels[(t->nodeIdentifier)], "STMT_BLOCK_RETURN") == 0){
+      parseTreeToPython(t->first,stmt_block_counter);
+      appendTab(stmt_block_counter);
+      writeStringInPythonFile("return ");
+      parseTreeToPython(t->second,stmt_block_counter);
+      writeStringInPythonFile("\n");
     }
     else
     {
         printf("nothing written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
-        parseTreeToPython(t->first);
-        parseTreeToPython(t->second);
-        parseTreeToPython(t->third);
-        parseTreeToPython(t->fourth);
+        parseTreeToPython(t->first,stmt_block_counter);
+        parseTreeToPython(t->second,stmt_block_counter);
+        parseTreeToPython(t->third,stmt_block_counter);
+        parseTreeToPython(t->fourth,stmt_block_counter);
     }
+}
+
+void appendTab(int nb){
+  for (int i = 0; i < nb; i++){
+    writeStringInPythonFile("\t");
+  }
 }
 
 void findBooleanOperator(char *s)
