@@ -1,14 +1,13 @@
 %{
 #include <stdio.h>
-#include <stdbool.h>
+#include <stdlib.h>
 #include <stdarg.h> 
+#include "types.h"
 #include "hashing.c"
+#include "parseTreeToPython.c"
 
 #define SYMTABSIZE	997
 #define IDLENGTH	15
-
-enum PARSE_TREE_NODE_TYPE {ID_EXPR,CONSTANT_EXPR, INFERIOR, SUPERIOR, SUPERIOR_EQUAL, INFERIOR_EQUAL, NOT_EQUAL, EQUAL, ABS_FUNC, LOG_FUNC, EXP_FUNC, PROGRAM, DECLARATION, DECLARATOR_LIST, TYPE_SPECIFIER, DECLARATION_BLOCK, ID, ADDITION, CONSTANT, ASSIGNATION, SOUSTRACTION, MULTIPLICATION, DIVISION, INT_DIVISION, MODULO, PARENTHESIS, AND_OP, OR_OP, NOT_OP, OPPOSITE, STMT_LIST, STMT, COMMENT_BLOCK, STMT_BLOCK, IF_ELSE_STMT, WHILE_LOOP, FOR_LOOP,READ_STMT,WRITE_STMT,FUNC_STMT,STMT_BLOCK_RETURN};
-const char* labels[] = {"ID_EXPR","CONSTANT_EXPR","INFERIOR", "SUPERIOR", "SUPERIOR_EQUAL", "INFERIOR_EQUAL", "NOT_EQUAL", "EQUAL","ABS_FUNC", "LOG_FUNC", "EXP_FUNC","PROGRAM", "DECLARATION", "DECLARATOR_LIST", "TYPE_SPECIFIER", "DECLARATION_BLOCK", "ID", "ADDITION","CONSTANT", "ASSIGNATION","SOUSTRACTION", "MULTIPLICATION", "DIVISION", "INT_DIVISION", "MODULO", "PARENTHESIS", "AND_OP", "OR_OP", "NOT_OP", "OPPOSITE", "STMT_LIST", "STMT", "COMMENT_BLOCK", "STMT_BLOCK", "IF_ELSE_STMT", "WHILE_LOOP", "FOR_LOOP","READ_STMT","WRITE_STMT","FUNC_STMT","STMT_BLOCK_RETURN"};
 
 char *id[100];
 char *type[100];
@@ -16,26 +15,7 @@ char *type[100];
 int yylex();
 int yyerror(char *s);
 
-/* parse tree */
-struct TreeNode {
-	struct TreeValue{
-		union {
-			int i;
-			long double r;
-			char *s;
-      char c;
-      bool b;
-		} v;
-		char *use;
-	} val;
-	int nodeIdentifier;
-	struct TreeNode *first;
-	struct TreeNode *second;
-	struct TreeNode *third;
-	struct TreeNode *fourth;
-};
-typedef struct TreeNode TREE_NODE;
-typedef TREE_NODE *B_TREE;
+
 B_TREE create_node(struct TreeValue, int, B_TREE, B_TREE, B_TREE, B_TREE);
 int find_usage(B_TREE, char *type[100], int, char *use);
 
@@ -81,7 +61,7 @@ precedence than addition and subtraction. All four operators are left-associativ
 %nonassoc IFX
 %nonassoc ELSE
 
-%type <treeVal> program stmt_block stmt stmt_list declaration_block declaration  declarator_list id_declarator expr type_specifier constant assignation comment_block stmt_block_with_return
+%type <treeVal> program stmt_block stmt stmt_list declaration_block declaration  declarator_list id_declarator expr type_specifier constant assignation comment_block stmt_block_with_return declaration_list
 
 /* beginning of rules section */
 %% 
@@ -92,17 +72,22 @@ program:
     $$ = create_node(empty_node,PROGRAM,$1,NULL,NULL,NULL); 
     PrintTree($$);
     print_table();
+    parse_tree_to_python($$,0);
     exit(0);
   }
   ;
 
 stmt_block: 
-  BEG NEWLINE stmt_list END stmt_terminator { struct TreeValue empty_node; empty_node.use="none"; $$ = create_node(empty_node,STMT_BLOCK,$3,NULL,NULL,NULL); }
+  BEG NEWLINE stmt_list END stmt_terminator NEWLINE { struct TreeValue empty_node; empty_node.use="none"; $$ = create_node(empty_node,STMT_BLOCK,$3,NULL,NULL,NULL); }
 
 stmt_block_with_return: 
-  BEG NEWLINE stmt_list RETURN expr stmt_terminator END stmt_terminator { 
+  BEG NEWLINE stmt_list RETURN expr stmt_terminator NEWLINE END stmt_terminator NEWLINE { 
     struct TreeValue empty_node; empty_node.use="none"; 
     $$ = create_node(empty_node,STMT_BLOCK_RETURN,$3,$5,NULL,NULL); 
+  }
+  | BEG NEWLINE RETURN expr stmt_terminator NEWLINE END stmt_terminator NEWLINE { 
+    struct TreeValue empty_node; empty_node.use="none"; 
+    $$ = create_node(empty_node,STMT_BLOCK_RETURN,NULL,$4,NULL,NULL); 
   }
 
 stmt_list:
@@ -111,15 +96,15 @@ stmt_list:
   ;
 
 stmt:
-  expr stmt_terminator{
+  expr stmt_terminator NEWLINE{
     struct TreeValue empty_node; empty_node.use="none";
     $$ = create_node(empty_node,STMT,$1,NULL,NULL,NULL); 
   }
-  | declaration_block {
+  | declaration_block NEWLINE {
     struct TreeValue empty_node; empty_node.use="none";
     $$ = create_node(empty_node,STMT,$1,NULL,NULL,NULL); 
   }
-  | assignation stmt_terminator{
+  | assignation stmt_terminator NEWLINE{
     struct TreeValue empty_node; empty_node.use="none";
     $$ = create_node(empty_node,STMT,$1,NULL,NULL,NULL); 
   }
@@ -200,7 +185,7 @@ stmt:
     }
   }
   | FOR assignation TO constant DO NEWLINE stmt {
-    if (strcmp($2->second->val.use,"int") != 0 || strcmp($4->val.use,"int") != 0){
+    if (strcmp($4->val.use,"int") != 0){
       yyerror("For-do loop: Variable and constant have to be of type integer.");
       exit(1);
     } else {
@@ -209,7 +194,7 @@ stmt:
     }
   }
   | FOR assignation TO constant DO NEWLINE stmt_block {
-    if (strcmp($2->second->val.use,"int") != 0 || strcmp($4->val.use,"int") != 0){
+    if (strcmp($4->val.use,"int") != 0){
       yyerror("For-do loop: Variable and constant have to be of type integer.");
       exit(1);
     } else {
@@ -217,7 +202,7 @@ stmt:
       $$ = create_node(empty_node,FOR_LOOP,$2,$4,$7,NULL); 
     }
   }
-  | READ '(' id_declarator ')' stmt_terminator{
+  | READ '(' id_declarator ')' stmt_terminator NEWLINE {
     int id_index;
     id_index = hash_search($3->val.v.s);
     if (id_index == -1){
@@ -231,11 +216,11 @@ stmt:
       $$ = create_node(empty_node,READ_STMT,$3,NULL,NULL,NULL);
     }
   }
-  | WRITE '(' expr ')' stmt_terminator{
+  | WRITE '(' expr ')' stmt_terminator NEWLINE {
     struct TreeValue empty_node; empty_node.use="none";
     $$ = create_node(empty_node,WRITE_STMT,$3,NULL,NULL,NULL);
   }
-  | FUNCTION id_declarator '(' declarator_list ')' DECLARATOR type_specifier NEWLINE stmt_block_with_return {
+  | FUNCTION id_declarator '(' declaration_list ')' DECLARATOR type_specifier NEWLINE stmt_block_with_return {
     if (strcmp($7->val.v.s,"void") == 0){
       yyerror("Assign a void type to the function but there is a return value.");
       exit(1);
@@ -278,7 +263,7 @@ stmt:
     struct TreeValue empty_node; empty_node.use="none";
     $$ = create_node(empty_node,FUNC_STMT,$2,$4,$7,$9);
   }
-  | FUNCTION id_declarator '(' declarator_list ')' DECLARATOR type_specifier NEWLINE stmt_block {
+  | FUNCTION id_declarator '(' declaration_list ')' DECLARATOR type_specifier NEWLINE stmt_block {
     if (strcmp($7->val.v.s,"void") != 0){
       yyerror("Assign a value type to the function but there is no return.");
       exit(1);
@@ -327,11 +312,15 @@ declaration_block:
     struct TreeValue empty_node; empty_node.use="none";
     $$ = create_node(empty_node,DECLARATION_BLOCK,$4,NULL,NULL,NULL); 
   } 
-  | declaration_block TAB declaration { 
+  | declaration_block NEWLINE TAB declaration { 
       struct TreeValue empty_node; empty_node.use="none";
-      $$ = create_node(empty_node,DECLARATION_BLOCK,$1,$3,NULL,NULL); 
+      $$ = create_node(empty_node,DECLARATION_BLOCK,$1,$4,NULL,NULL); 
   }
   ;
+
+declaration_list:
+  declaration {struct TreeValue empty_node; empty_node.use="none"; $$ = create_node(empty_node,DECLARATION_LIST,$1,NULL,NULL,NULL); }
+  | declaration_list declaration {struct TreeValue empty_node; empty_node.use="none"; $$ = create_node(empty_node,DECLARATION_LIST,$1,$2,NULL,NULL); }
 
 declaration:
   declarator_list DECLARATOR type_specifier stmt_terminator {
@@ -743,7 +732,7 @@ comment_block:
   }
 
 stmt_terminator:
-  TERMINATOR NEWLINE {}
+  TERMINATOR {}
 
 ignore_newline:
   NEWLINE {}
