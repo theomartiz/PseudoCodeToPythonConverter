@@ -18,11 +18,4 @@ end;
 end;
 
 
-function f(z):int
-begin
-z:=z+1;
-return z;
-end;
-
-x := f(1);
 y := abs(x);
