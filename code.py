@@ -1,10 +1,3 @@
-x = None 
-y = None 
-x = (1 + 1)
-if (x > 0):
-	if (x == 0):
-		x = 1
-	else:
-		x = 0
-		y = x
-y = abs(x) 
+def f(x,y,z):
+	x = x + 1
+	return x

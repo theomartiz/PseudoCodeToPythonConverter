@@ -1,7 +1,7 @@
 { Ceci est un commentaire }
 
 var
-    x: int;
+    x,z: int;
     a: boolean;
     y: real;
 
