@@ -268,7 +268,7 @@ void parse_tree_to_python(B_TREE t, int stmt_block_counter)
     {
         printf("written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
         append_tab(stmt_block_counter);
-        write_string_in_python_file("def ");
+        write_string_in_python_file("\ndef ");
         parse_tree_to_python(t->first, stmt_block_counter);
         write_string_in_python_file("(");
         print_function_parameters(t->second);
@@ -290,6 +290,12 @@ void parse_tree_to_python(B_TREE t, int stmt_block_counter)
         write_string_in_python_file("return ");
         parse_tree_to_python(t->second, stmt_block_counter);
         write_string_in_python_file("\n");
+    } else if (strcmp(labels[(t->nodeIdentifier)], "FUNC_EXPR") == 0)
+    {
+        parse_tree_to_python(t->first, stmt_block_counter);
+        write_string_in_python_file("(");
+        print_function_parameters(t->second);
+        write_string_in_python_file(")");
     }
     else
     {

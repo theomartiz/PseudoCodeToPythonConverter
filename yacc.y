@@ -804,6 +804,35 @@ expr:
       $$ = create_node(empty_node, EXP_FUNC, $3, NULL, NULL, NULL);
     }
   }
+  | id_declarator '(' declarator_list ')' {
+    int id_index;
+    id_index = hash_search($1->val.v.s);
+    if (id_index == -1){
+      char message[32+IDLENGTH] = "Variable ";
+      strcat(message,$1->val.v.s);
+      strcat(message," has not been declared.");
+      yyerror(message);
+      exit(1);
+    } else {
+      struct TreeValue empty_node; 
+      empty_node.use=symtab[id_index].type;
+      $$ = create_node(empty_node,FUNC_EXPR,$1,$3,NULL,NULL);
+    }
+  } | id_declarator '(' ')' {
+    int id_index;
+    id_index = hash_search($1->val.v.s);
+    if (id_index == -1){
+      char message[32+IDLENGTH] = "Variable ";
+      strcat(message,$1->val.v.s);
+      strcat(message," has not been declared.");
+      yyerror(message);
+      exit(1);
+    } else {
+      struct TreeValue empty_node; 
+      empty_node.use=symtab[id_index].type;
+      $$ = create_node(empty_node,FUNC_EXPR,$1,NULL,NULL,NULL);
+    }
+  }
   ;
 
 comment_block:
@@ -855,10 +884,10 @@ int find_usage(B_TREE p,char *value[100], int i, char *use) {
 void PrintTree(B_TREE t) {
 	if(t==NULL)
 		return; 
-  if (t->nodeIdentifier < 11)
+  if (t->nodeIdentifier < 12)
     /* 
       Correspond to nodes for which values are not relevant : 
-      ID_EXPR,CONSTANT_EXPR, INFERIOR, SUPERIOR, SUPERIOR_EQUAL, INFERIOR_EQUAL, NOT_EQUAL, EQUAL, ABS_FUNC, LOG_FUNC, EXP_FUNC,
+      FUNC_EXPR, ID_EXPR, CONSTANT_EXPR, INFERIOR, SUPERIOR, SUPERIOR_EQUAL, INFERIOR_EQUAL, NOT_EQUAL, EQUAL, ABS_FUNC, LOG_FUNC, EXP_FUNC,
     */
     printf("No value | ");
   else {

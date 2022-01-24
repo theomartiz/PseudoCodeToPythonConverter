@@ -28,8 +28,16 @@ y := log(x,2);
 
 exp(3);
 
-function f():int
+function addOne(a:int;):int
+begin
+return a+1;
+end;
+
+function f2():int
 begin
 return 1;
 end;
+
+x := addOne(x);
+z := f2();
 
