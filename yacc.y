@@ -303,6 +303,89 @@ stmt:
     struct TreeValue empty_node; empty_node.use="none";
     $$ = create_node(empty_node,FUNC_STMT,$2,$4,$7,$9);
   }
+  | FUNCTION id_declarator '(' ')' DECLARATOR type_specifier NEWLINE stmt_block {
+    if (strcmp($6->val.v.s,"void") != 0){
+      yyerror("Assign a value type to the function but there is no return.");
+      exit(1);
+    }
+
+    int i, j, type_index = 0, id_index = 0, insert_result;
+
+    for(i = 0; i < 100; i++) {
+      id[i] = (char *)malloc(IDLENGTH*sizeof(char));
+      strcpy(id[i],"NULL");
+      type[i] = (char *)malloc(10*sizeof(char));
+      strcpy(type[i],"NULL");
+    }
+    
+    //find the number of ids in the current tree
+    id_index = find_usage($2,id,id_index,"identifier");
+    //find the number of types declaration in the current tree
+    type_index = find_usage($6,type,type_index,"string");
+
+    for(i=0;i<id_index;i++) {
+      for(j=1;j<type_index;j++) {
+        if(strcmp(type[j],"NULL")!=0) {
+          strcat(type[0]," ");
+          strcat(type[0],type[j]);
+        }
+      }
+      insert_result = hash_insert(id[i],type[0]);
+      if (insert_result == -1){
+        char message[35+IDLENGTH] = "Variable ";
+        strcat(message,id[i]);
+        strcat(message," has already been declared.");
+        yyerror(message);
+        exit(1);
+      }
+    }
+
+    struct TreeValue empty_node; empty_node.use="none";
+    $$ = create_node(empty_node,FUNC_STMT,$2,NULL,$6,$8);
+  }
+  | FUNCTION id_declarator '(' ')' DECLARATOR type_specifier NEWLINE stmt_block_with_return {
+    if (strcmp($6->val.v.s,"void") == 0){
+      yyerror("Assign a void type to the function but there is a return value.");
+      exit(1);
+    } else if (strcmp($6->val.v.s,$8->second->val.use) != 0){
+      yyerror("Function and return value type mismatch.");
+      exit(1);
+    }
+
+    int i, j, type_index = 0, id_index = 0, insert_result;
+
+    for(i = 0; i < 100; i++) {
+      id[i] = (char *)malloc(IDLENGTH*sizeof(char));
+      strcpy(id[i],"NULL");
+      type[i] = (char *)malloc(10*sizeof(char));
+      strcpy(type[i],"NULL");
+    }
+    
+    //find the number of ids in the current tree
+    id_index = find_usage($2,id,id_index,"identifier");
+    //find the number of types declaration in the current tree
+    type_index = find_usage($6,type,type_index,"string");
+
+    for(i=0;i<id_index;i++) {
+      for(j=1;j<type_index;j++) {
+        if(strcmp(type[j],"NULL")!=0) {
+          strcat(type[0]," ");
+          strcat(type[0],type[j]);
+        }
+      }
+      insert_result = hash_insert(id[i],type[0]);
+      if (insert_result == -1){
+        char message[35+IDLENGTH] = "Variable ";
+        strcat(message,id[i]);
+        strcat(message," has already been declared.");
+        yyerror(message);
+        exit(1);
+      }
+    }
+
+    struct TreeValue empty_node; empty_node.use="none";
+    $$ = create_node(empty_node,FUNC_STMT,$2,NULL,$6,$8);
+  }
   | ignore_newline {}
   ;
   

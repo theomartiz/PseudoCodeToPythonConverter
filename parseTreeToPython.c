@@ -359,6 +359,7 @@ void write_basic_data_type(B_TREE t)
 
 void print_function_parameters(B_TREE t)
 {
+    if (t == NULL) return;
     if (strcmp(labels[(t->nodeIdentifier)], "DECLARATION_LIST") == 0)
     {
         printf("nothing written for nodeIdentifier: %s\n", labels[(t->nodeIdentifier)]);
