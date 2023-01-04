@@ -6,7 +6,7 @@ Main objectives of the assignement:
 - Run a syntax analysis and construct a parse tree (with Yacc tool)
 - Generate a python code from this parse tree
 
-RUN
+RUN (MacOS & Linux with Lex and Yacc)
 - `yacc -d yacc.y` to get y.tab.c and y.tab.h files (y.tab.h is required by lex.l for token definitions)
 - `lex lex.l` to get lex.yy.c file
 - `cc lex.yy.c y.tab.c` to compile and get a.out executable
@@ -14,12 +14,9 @@ RUN
 
 OR RUN yacc -d yacc.y && lex lex.l && cc main.c && ./a.out input.txt
 
-TO RUN ON WINDOWS:
+RUN (Windows with Bison):
 - 'flex "fileName.l"'
 - 'bison -d "fileName.y"'
 - 'gcc -o "executableName.exe" "fileName.yy.c"
 
 or run the batch file buildExe.bat
-
-A faire: 
-  - Debug newline et tab
